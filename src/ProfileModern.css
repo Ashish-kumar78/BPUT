@@ -1,0 +1,644 @@
+/* ==========================================================
+   Student Profile — modern refresh (scoped to .sp-modern)
+   Visual-only overrides; no markup/behaviour changes.
+   ========================================================== */
+.student-profile-page.sp-modern {
+  --p-ink: #0f172a;
+  --p-ink-2: #334155;
+  --p-muted: #64748b;
+  --p-line: #e8edf5;
+  --p-soft: #f6f8fc;
+  --p-blue: #2563eb;
+  --p-blue-2: #4f46e5;
+  --p-radius: 18px;
+  --p-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.05);
+  color: var(--p-ink);
+  animation: sp-fade 0.4s ease both;
+}
+
+@keyframes sp-fade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- Breadcrumb + title ---------- */
+.student-profile-page.sp-modern .profile-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--p-muted);
+}
+
+.student-profile-page.sp-modern .profile-breadcrumb button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--p-blue);
+  cursor: pointer;
+}
+
+.student-profile-page.sp-modern .profile-breadcrumb button:hover { text-decoration: underline; }
+.student-profile-page.sp-modern .profile-breadcrumb strong { color: var(--p-ink); font-weight: 700; }
+
+.student-profile-page.sp-modern .profile-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 0 18px;
+}
+
+.student-profile-page.sp-modern .profile-title-row h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--p-ink);
+}
+
+.student-profile-page.sp-modern .profile-title-row h1 svg {
+  box-sizing: content-box;
+  padding: 8px;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: var(--p-blue);
+}
+
+.student-profile-page.sp-modern .profile-return {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid #dbe2ec;
+  border-radius: 12px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--p-ink-2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.student-profile-page.sp-modern .profile-return:hover {
+  border-color: var(--p-blue);
+  background: var(--p-blue);
+  color: #fff;
+  transform: translateX(-2px);
+}
+
+/* ---------- Identity hero ---------- */
+.student-profile-page.sp-modern .profile-overview-strip {
+  overflow: visible;
+  grid-template-columns: 84px minmax(180px, 1fr) minmax(300px, 1.5fr) auto;
+  gap: 22px;
+  margin-bottom: 18px;
+  padding: 26px 28px;
+  border: 0;
+  border-radius: 22px;
+  color: #fff;
+  background:
+    radial-gradient(900px 260px at 100% 0%, rgba(255, 255, 255, 0.14), transparent 60%),
+    linear-gradient(120deg, #1e3a8a 0%, #2563eb 50%, #4f46e5 100%);
+  box-shadow: 0 18px 40px -18px rgba(37, 99, 235, 0.55);
+}
+
+.student-profile-page.sp-modern .profile-overview-strip > .profile-photo {
+  display: grid;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  border: 3px solid rgba(255, 255, 255, 0.55);
+  border-radius: 24px;
+  background: linear-gradient(135deg, #ffffff, #dbeafe);
+  color: var(--p-blue);
+  font-size: 26px;
+  font-weight: 800;
+  box-shadow: 0 12px 26px -10px rgba(15, 23, 42, 0.5);
+}
+
+.student-profile-page.sp-modern .profile-overview-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(110, 231, 183, 0.45);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #d1fae5;
+}
+
+.student-profile-page.sp-modern .profile-overview-label::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25);
+}
+
+.student-profile-page.sp-modern .profile-overview-copy h2 {
+  margin: 10px 0 2px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff !important;
+}
+
+.student-profile-page.sp-modern .profile-overview-copy p {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.student-profile-page.sp-modern .profile-overview-facts { gap: 12px; }
+
+.student-profile-page.sp-modern .profile-overview-facts span {
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.student-profile-page.sp-modern .profile-overview-facts small {
+  font-size: 11px;
+  font-weight: 600;
+  color: #c7d2fe;
+}
+
+.student-profile-page.sp-modern .profile-overview-facts strong {
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff !important;
+}
+
+/* Full registry dropdown */
+.student-profile-page.sp-modern .profile-registry-summary { min-width: 150px; }
+
+.student-profile-page.sp-modern .profile-registry-summary summary {
+  gap: 8px;
+  height: 100%;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 14px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--p-blue);
+  transition: all 0.2s ease;
+}
+
+.student-profile-page.sp-modern .profile-registry-summary summary:hover {
+  background: #eff6ff;
+  transform: translateY(-1px);
+}
+
+.student-profile-page.sp-modern .profile-registry-summary[open] {
+  border: 1px solid var(--p-line);
+  border-radius: 16px;
+  box-shadow: 0 24px 50px -12px rgba(15, 23, 42, 0.3);
+  color: var(--p-ink);
+}
+
+.student-profile-page.sp-modern .profile-registry-summary[open] summary {
+  border: 0;
+  border-bottom: 1px solid var(--p-line);
+  border-radius: 0;
+  background: #f8fafc;
+}
+
+.student-profile-page.sp-modern .profile-summary-row {
+  background: #fff !important;
+  border-bottom: 1px solid var(--p-line);
+}
+
+.student-profile-page.sp-modern .profile-summary-row:nth-child(even) { background: #fafbfd !important; }
+
+.student-profile-page.sp-modern .profile-summary-row dt,
+.student-profile-page.sp-modern .profile-summary-row dd {
+  padding: 10px 14px;
+  font-size: 12.5px;
+}
+
+.student-profile-page.sp-modern .profile-summary-row dt { color: var(--p-muted); font-weight: 600; }
+.student-profile-page.sp-modern .profile-summary-row dd { color: var(--p-ink); font-weight: 700; }
+
+.student-profile-page.sp-modern .profile-active {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ---------- Quick links ---------- */
+.student-profile-page.sp-modern .profile-quick-links {
+  gap: 12px;
+  padding: 0 0 16px;
+}
+
+.student-profile-page.sp-modern .profile-quick-links button {
+  gap: 10px;
+  min-height: 54px;
+  padding: 10px 14px;
+  border: 1px solid var(--p-line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--p-shadow);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--p-ink-2);
+  text-decoration: none !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s;
+}
+
+.student-profile-page.sp-modern .profile-quick-links button svg {
+  box-sizing: content-box;
+  padding: 7px;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: var(--p-blue);
+  transition: all 0.2s ease;
+}
+
+.student-profile-page.sp-modern .profile-quick-links button:nth-child(2) svg { background: #f5f3ff; color: #7c3aed; }
+.student-profile-page.sp-modern .profile-quick-links button:nth-child(3) svg { background: #ecfdf5; color: #059669; }
+.student-profile-page.sp-modern .profile-quick-links button:nth-child(4) svg { background: #fff7ed; color: #ea580c; }
+
+.student-profile-page.sp-modern .profile-quick-links button:hover {
+  transform: translateY(-2px);
+  border-color: #c7d7fe;
+  background: #fff;
+  box-shadow: 0 14px 28px -14px rgba(37, 99, 235, 0.45);
+}
+
+.student-profile-page.sp-modern .profile-quick-links button.active {
+  border-color: var(--p-blue);
+  background: linear-gradient(135deg, var(--p-blue), var(--p-blue-2));
+  color: #fff;
+  box-shadow: 0 14px 28px -12px rgba(37, 99, 235, 0.6);
+}
+
+.student-profile-page.sp-modern .profile-quick-links button.active svg {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* ---------- Tabs (pill bar, wraps — no scroll arrows) ---------- */
+.student-profile-page.sp-modern .profile-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 0;
+  max-width: none;
+  overflow: visible;
+  padding: 8px;
+  border: 1px solid var(--p-line);
+  border-radius: 18px 18px 0 0;
+  border-bottom: 1px solid var(--p-line);
+  background: var(--p-soft);
+}
+
+.student-profile-page.sp-modern .profile-tabs button {
+  flex: 1 1 0;
+  min-width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--p-muted);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.student-profile-page.sp-modern .profile-tabs button svg { width: 15px; height: 15px; }
+
+.student-profile-page.sp-modern .profile-tabs button:hover {
+  background: #fff;
+  border-color: var(--p-line);
+  color: var(--p-ink);
+}
+
+.student-profile-page.sp-modern .profile-tabs button.active {
+  margin: 0;
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--p-blue), var(--p-blue-2));
+  color: #fff;
+  box-shadow: 0 8px 18px -8px rgba(37, 99, 235, 0.65);
+}
+
+/* ---------- Detail panel ---------- */
+.student-profile-page.sp-modern .profile-detail-panel {
+  margin-top: 0;
+  overflow: hidden;
+  border: 1px solid var(--p-line);
+  border-top: 0;
+  border-radius: 0 0 18px 18px;
+  background: #fff;
+  box-shadow: var(--p-shadow);
+}
+
+.student-profile-page.sp-modern .profile-detail-panel.has-embedded-page {
+  padding: 24px 22px;
+}
+
+.student-profile-page.sp-modern .profile-detail-panel > h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 0;
+  margin: 0;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--p-line);
+  background: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--p-ink);
+}
+
+.student-profile-page.sp-modern .profile-detail-panel > h2 svg {
+  box-sizing: content-box;
+  padding: 6px;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: var(--p-blue);
+}
+
+.student-profile-page.sp-modern .profile-status-message {
+  margin: 14px 20px;
+  padding: 10px 14px;
+  border: 0;
+  border-left: 3px solid #f59e0b;
+  border-radius: 10px;
+  background: #fffbeb;
+  font-size: 12.5px;
+  color: #92400e;
+}
+
+/* Key/value data grid */
+.student-profile-page.sp-modern .profile-data-table {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  padding: 8px 20px 16px;
+}
+
+.student-profile-page.sp-modern .profile-data-row {
+  display: contents;
+}
+
+.student-profile-page.sp-modern .profile-data-field,
+.student-profile-page.sp-modern .profile-data-row.wide-row .profile-data-field {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  grid-column: auto;
+  min-height: 62px;
+  padding: 12px 14px;
+  border: 0 !important;
+  border-bottom: 1px dashed var(--p-line) !important;
+  border-radius: 0;
+  transition: background 0.15s ease;
+}
+
+.student-profile-page.sp-modern .profile-data-field:hover { background: #f8fafc; }
+
+.student-profile-page.sp-modern .profile-data-field > span,
+.student-profile-page.sp-modern .profile-data-field > strong,
+.student-profile-page.sp-modern .profile-data-row:nth-child(even) .profile-data-field > strong,
+.student-profile-page.sp-modern .profile-data-row.wide-row .profile-data-field > strong {
+  display: block;
+  padding: 0;
+  background: transparent;
+  line-height: 1.4;
+}
+
+.student-profile-page.sp-modern .profile-data-field > span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.student-profile-page.sp-modern .profile-data-field > strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--p-ink);
+}
+
+/* Academic tab: single-column key/value list reads better */
+.student-profile-page.sp-modern .academic-data-table { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.student-profile-page.sp-modern .academic-status-table { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* Profile-owned tables (qualifications, quick records) */
+.student-profile-page.sp-modern .qualification-table-wrap,
+.student-profile-page.sp-modern .profile-quick-record .attendance-table-wrap {
+  margin: 8px 20px 16px;
+  overflow-x: auto;
+  border: 1px solid var(--p-line);
+  border-radius: 14px;
+}
+
+.student-profile-page.sp-modern .qualification-table,
+.student-profile-page.sp-modern .profile-quick-record .attendance-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.student-profile-page.sp-modern .qualification-table th,
+.student-profile-page.sp-modern .qualification-table td,
+.student-profile-page.sp-modern .profile-quick-record .attendance-summary-table th,
+.student-profile-page.sp-modern .profile-quick-record .attendance-summary-table td {
+  padding: 12px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--p-line);
+  font-size: 13px;
+  text-align: left;
+  color: var(--p-ink-2);
+}
+
+.student-profile-page.sp-modern .qualification-table thead th,
+.student-profile-page.sp-modern .profile-quick-record .attendance-summary-table thead th {
+  background: #f8fafc;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--p-muted);
+}
+
+.student-profile-page.sp-modern .qualification-table tbody tr:hover,
+.student-profile-page.sp-modern .profile-quick-record .attendance-summary-table tbody tr:hover { background: #f8fafc; }
+
+.student-profile-page.sp-modern .qualification-table tbody tr:last-child th,
+.student-profile-page.sp-modern .qualification-table tbody tr:last-child td,
+.student-profile-page.sp-modern .profile-quick-record tbody tr:last-child th,
+.student-profile-page.sp-modern .profile-quick-record tbody tr:last-child td { border-bottom: 0; }
+
+.student-profile-page.sp-modern .qualification-table tbody th,
+.student-profile-page.sp-modern .profile-quick-record tbody th { font-weight: 700; color: var(--p-ink); }
+
+.student-profile-page.sp-modern .profile-quick-record-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-right: 20px;
+}
+
+/* Documents */
+.student-profile-page.sp-modern .profile-documents {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 18px 20px;
+}
+
+.student-profile-page.sp-modern .profile-document-row {
+  min-height: 64px;
+  padding: 12px 14px;
+  border: 1px solid var(--p-line);
+  border-radius: 14px;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+
+.student-profile-page.sp-modern .profile-document-row:hover {
+  border-color: #c7d7fe;
+  box-shadow: 0 10px 24px -14px rgba(37, 99, 235, 0.5);
+}
+
+.student-profile-page.sp-modern .profile-document-row > span {
+  gap: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--p-ink);
+}
+
+.student-profile-page.sp-modern .profile-document-row > span svg {
+  box-sizing: content-box;
+  padding: 9px;
+  border-radius: 11px;
+  background: #eff6ff;
+  color: var(--p-blue);
+}
+
+.student-profile-page.sp-modern .profile-document-row button {
+  padding: 8px 16px;
+  border: 1px solid #dbe2ec;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--p-blue);
+  transition: all 0.2s ease;
+}
+
+.student-profile-page.sp-modern .profile-document-row button:hover {
+  border-color: var(--p-blue);
+  background: var(--p-blue);
+  color: #fff;
+}
+
+/* ID card */
+.student-profile-page.sp-modern .profile-id-card {
+  width: min(420px, calc(100% - 40px));
+  margin: 24px auto;
+  padding: 24px;
+  gap: 8px 16px;
+  border: 0;
+  border-radius: 22px;
+  color: #fff;
+  background:
+    radial-gradient(400px 160px at 100% 0%, rgba(255, 255, 255, 0.18), transparent 60%),
+    linear-gradient(135deg, #1e3a8a, #2563eb 55%, #4f46e5);
+  box-shadow: 0 24px 50px -20px rgba(37, 99, 235, 0.7);
+}
+
+.student-profile-page.sp-modern .profile-id-mark {
+  width: 44px;
+  height: 44px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  background: #fff;
+  color: var(--p-blue);
+  font-weight: 800;
+}
+
+.student-profile-page.sp-modern .profile-id-copy strong { font-size: 14px; color: #fff; letter-spacing: 0.04em; }
+.student-profile-page.sp-modern .profile-id-copy small { font-size: 10.5px; color: #c7d2fe; }
+
+.student-profile-page.sp-modern .profile-id-avatar {
+  width: 72px;
+  height: 84px;
+  border: 3px solid rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fff, #dbeafe);
+  color: var(--p-blue);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.student-profile-page.sp-modern .profile-id-name { margin-top: 8px; font-size: 18px; color: #fff; }
+
+.student-profile-page.sp-modern .profile-id-card > span:last-child,
+.student-profile-page.sp-modern .profile-id-card > span:nth-last-child(2) {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Footer meta */
+.student-profile-page.sp-modern .profile-extra-links {
+  padding: 14px 4px 0;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.student-profile-page.sp-modern .profile-extra-links svg { color: var(--p-blue); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1100px) {
+  .student-profile-page.sp-modern .profile-overview-strip {
+    grid-template-columns: 84px minmax(0, 1fr) auto;
+  }
+  .student-profile-page.sp-modern .profile-overview-facts { grid-column: 1 / -1; grid-row: 2; }
+  .student-profile-page.sp-modern .academic-data-table { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 720px) {
+  .student-profile-page.sp-modern .profile-overview-strip {
+    grid-template-columns: 64px minmax(0, 1fr);
+    padding: 20px;
+  }
+  .student-profile-page.sp-modern .profile-overview-strip > .profile-photo { width: 60px; height: 60px; font-size: 20px; }
+  .student-profile-page.sp-modern .profile-overview-facts { grid-template-columns: 1fr; }
+  .student-profile-page.sp-modern .profile-registry-summary { grid-column: 1 / -1; }
+  .student-profile-page.sp-modern .profile-quick-links { grid-template-columns: 1fr 1fr; }
+  .student-profile-page.sp-modern .profile-data-table,
+  .student-profile-page.sp-modern .academic-data-table,
+  .student-profile-page.sp-modern .academic-status-table,
+  .student-profile-page.sp-modern .profile-documents { grid-template-columns: 1fr; }
+}

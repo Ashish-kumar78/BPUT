@@ -1,0 +1,317 @@
+/* ── Academics Page ── */
+.academics-page { padding: 0; }
+
+.academics-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.academics-kicker {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 4px;
+  color: #a27932;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+}
+
+.academics-header h2 {
+  margin: 0 0 4px;
+  color: #0f172a;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.academics-caption { margin: 0; color: #78857e; font-size: 11px; }
+
+.academics-cgpa-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border: 1px solid #d8e8d2;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #edf7ea, #f7fcf6);
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.academics-cgpa-badge strong { font-size: 22px; line-height: 1; }
+.academics-cgpa-badge small { color: #6a9478; font-size: 11px; }
+
+.academics-tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.academics-tabs button {
+  padding: 8px 16px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: color .15s, border-color .15s;
+}
+
+.academics-tabs button.active {
+  border-bottom-color: #2563eb;
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.academics-tabs button:hover { color: #2563eb; }
+
+/* Semester Accordion */
+.semester-accordion {
+  margin-bottom: 8px;
+  border: 1px solid #dfe6db;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.semester-accordion.current { border-color: #93c5fd; }
+
+.semester-accordion-head {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border: 0;
+  background: #f8faf7;
+  color: #0f172a;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.semester-accordion.current .semester-accordion-head { background: #eff6ff; }
+.semester-accordion-head:hover { background: #eef4ec; }
+
+.semester-label { display: flex; align-items: center; gap: 8px; flex: 1; }
+
+.semester-badge {
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: #27ae6020;
+  color: #27ae60;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .05em;
+}
+
+.semester-meta { color: #88978d; font-size: 10px; }
+
+.semester-accordion-head svg.rotated { transform: rotate(180deg); }
+.semester-accordion-head svg { color: #94a3b8; transition: transform .2s; }
+
+.semester-accordion-body { padding: 12px; }
+
+.subject-table-wrap { overflow-x: auto; }
+
+.subject-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.subject-table th {
+  padding: 8px 10px;
+  background: #f4f7f2;
+  color: #475569;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.subject-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid #edf0eb;
+  color: #0f172a;
+}
+
+.subject-table tr:last-child td { border-bottom: 0; }
+
+.subject-table code {
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: #edf2ff;
+  color: #3a5db5;
+  font-size: 10px;
+}
+
+.subject-type-tag {
+  padding: 2px 7px;
+  border-radius: 20px;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.subject-type-tag.theory { background: #e8f0fe; color: #2b5cb5; }
+.subject-type-tag.lab { background: #fdf3e3; color: #a76f18; }
+.subject-type-tag.project { background: #eff6ff; color: #2e7d4a; }
+
+.grade-pill {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.grade-pill.grade-Ap { background: #d4edda; color: #155724; }
+.grade-pill.grade-A { background: #d1ecf1; color: #0c5460; }
+.grade-pill.grade-Bp { background: #fff3cd; color: #856404; }
+.grade-pill.grade-B { background: #fde2e2; color: #b33030; }
+
+.syllabus-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid #c8d8c2;
+  border-radius: 4px;
+  background: #eff6ff;
+  color: #2563eb;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.no-syllabus { color: #c0c8c0; }
+
+/* Results */
+.results-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.results-summary-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+}
+
+.results-summary-card svg { color: #2563eb; }
+.results-summary-card strong { font-size: 22px; }
+.results-summary-card span { color: #94a3b8; font-size: 10px; }
+
+.result-semester-table-wrap { overflow-x: auto; }
+
+.result-semester-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.result-semester-table th {
+  padding: 9px 12px;
+  background: #f4f7f2;
+  color: #475569;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.result-semester-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #edf0eb;
+}
+
+.sgpa-chip {
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #d4f5e4;
+  color: #1a7843;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.result-status {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.result-status.passed { background: #d4edda; color: #155724; }
+.result-status.progress { background: #fff3cd; color: #856404; }
+
+.marksheet-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid #c8d8c2;
+  border-radius: 4px;
+  background: #eff6ff;
+  color: #2563eb;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+/* Syllabus Grid */
+.syllabus-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.syllabus-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.syllabus-card-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.syllabus-card-copy strong { display: block; color: #0f172a; font-size: 12px; margin-bottom: 2px; }
+.syllabus-card-copy small { color: #88978d; font-size: 10px; }
+
+.syllabus-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border: 1px solid #93c5fd;
+  border-radius: 4px;
+  background: #eff6ff;
+  color: #1e40af;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 500;
+  margin-top: auto;
+}
+
+.syllabus-download-btn:hover { background: #d4edda; }
