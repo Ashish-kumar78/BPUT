@@ -19,7 +19,9 @@ import {
 } from 'lucide-react';
 import './CanteenPortal.css';
 import '../components/AdminPortal.css';
+import { downloadCanteenStatementPdf } from '../utils/pdfGenerator';
 import { initialFoodItems, initialCanteenOrders } from '../data/collegeData.js';
+import { api } from '../services/api.js';
 
 export default function CanteenPortal({ account, onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -42,7 +44,7 @@ export default function CanteenPortal({ account, onLogout }) {
     setTimeout(() => setToastMessage(''), 3500);
   };
 
-  const handleUpdateOrderStatus = (orderId, newStatus) => {
+  const handleUpdateOrderStatus = async (orderId, newStatus) => {
     setOrders(prev => prev.map(o => {
       if (o.id === orderId) {
         return { ...o, status: newStatus };
@@ -50,9 +52,14 @@ export default function CanteenPortal({ account, onLogout }) {
       return o;
     }));
     showToast(`Order ${orderId} is now marked as "${newStatus}"!`);
+    try {
+      await api.updateCanteenOrderStatus(orderId, newStatus);
+    } catch (err) {
+      console.warn('Backend order status sync failed:', err.message);
+    }
   };
 
-  const handleToggleAvailability = (itemId) => {
+  const handleToggleAvailability = async (itemId) => {
     setFoodItems(prev => prev.map(item => {
       if (item.id === itemId) {
         const nextState = !item.isAvailable;
@@ -61,9 +68,14 @@ export default function CanteenPortal({ account, onLogout }) {
       }
       return item;
     }));
+    try {
+      await api.toggleFoodAvailability(itemId);
+    } catch (err) {
+      console.warn('Backend food toggle sync failed:', err.message);
+    }
   };
 
-  const handleAddItem = (e) => {
+  const handleAddItem = async (e) => {
     e.preventDefault();
     const newItem = {
       id: `food-${Date.now()}`,
@@ -77,6 +89,11 @@ export default function CanteenPortal({ account, onLogout }) {
     setFoodItems(prev => [...prev, newItem]);
     setIsAddItemModalOpen(false);
     showToast(`Added ${newItem.name} (₹${newItem.price}) to Smart Canteen menu!`);
+    try {
+      await api.addFoodItem(newItem);
+    } catch (err) {
+      console.warn('Backend food item add failed:', err.message);
+    }
   };
 
   const pendingOrders = orders.filter(o => o.status === 'Pending').length;
@@ -458,7 +475,10 @@ export default function CanteenPortal({ account, onLogout }) {
                   <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0.5rem 0 1rem 0' }}>
                     Itemized quantity sold, gross revenue, and payment method distribution.
                   </p>
-                  <button className="admin-action-btn-primary" onClick={() => showToast('Generated Daily Canteen Sales PDF.')}>
+                  <button className="admin-action-btn-primary" onClick={() => {
+                    downloadCanteenStatementPdf();
+                    showToast('Generated & downloaded Daily Canteen Sales PDF.');
+                  }}>
                     <Download size={15} /> Download PDF Statement
                   </button>
                 </div>

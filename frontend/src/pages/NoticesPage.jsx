@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { 
   Bell, 
   Search, 
@@ -10,6 +10,7 @@ import {
   CheckCircle,
   FileText
 } from 'lucide-react'
+import { downloadNoticePdf } from '../utils/pdfGenerator'
 import './NoticesPage.css'
 
 const allNotices = [
@@ -150,7 +151,7 @@ export default function NoticesPage() {
               <div className="notice-actions">
                 <button 
                   className="btn-notice-action" 
-                  onClick={() => alert(`Downloading attachment: ${item.attachment}`)}
+                  onClick={() => downloadNoticePdf(item)}
                 >
                   <Download size={14} /> PDF
                 </button>
@@ -185,7 +186,7 @@ export default function NoticesPage() {
               <button 
                 className="btn-pay-now" 
                 style={{ padding: '8px 16px', fontSize: '0.85rem' }}
-                onClick={() => alert(`Downloading official notification: ${selectedNotice.attachment}`)}
+                onClick={() => downloadNoticePdf(selectedNotice)}
               >
                 <Download size={14} /> Download Official Letter
               </button>

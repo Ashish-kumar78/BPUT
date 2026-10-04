@@ -20,12 +20,14 @@ import {
 } from 'lucide-react';
 import './AccountsPortal.css';
 import '../components/AdminPortal.css';
+import { downloadFeeReceiptPdf, downloadAccountsRegisterPdf } from '../utils/pdfGenerator';
 import {
   initialFeeStructures,
   initialFeeTransactions,
   initialScholarships,
   generateAllStudents
 } from '../data/collegeData.js';
+import { api } from '../services/api.js';
 
 export default function AccountsPortal({ account, onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -43,7 +45,7 @@ export default function AccountsPortal({ account, onLogout }) {
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [paymentForm, setPaymentForm] = useState({
     rollNumber: '01',
-    studentName: 'Ananya Das',
+    studentName: 'Rakesh Das',
     head: 'Tuition & Development Fee',
     amount: '48500',
     mode: 'Net Banking',
@@ -56,7 +58,7 @@ export default function AccountsPortal({ account, onLogout }) {
     setTimeout(() => setToastMessage(''), 3500);
   };
 
-  const handleRecordPayment = (e) => {
+  const handleRecordPayment = async (e) => {
     e.preventDefault();
     const newTxn = {
       id: `TXN-${Math.floor(10000 + Math.random() * 90000)}`,
@@ -73,6 +75,11 @@ export default function AccountsPortal({ account, onLogout }) {
     setTransactions(prev => [newTxn, ...prev]);
     setIsRecordPaymentOpen(false);
     showToast(`Payment of ₹${Number(paymentForm.amount).toLocaleString('en-IN')} recorded for Roll ${paymentForm.rollNumber}! Receipt generated.`);
+    try {
+      await api.recordFeePayment(paymentForm);
+    } catch (err) {
+      console.warn('Backend payment record sync failed:', err.message);
+    }
   };
 
   const filteredTransactions = transactions.filter(t => {
@@ -522,7 +529,10 @@ export default function AccountsPortal({ account, onLogout }) {
                   <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0.5rem 0 1rem 0' }}>
                     Itemized receipt log across counter cash, online UPI, and Net Banking collections.
                   </p>
-                  <button className="admin-action-btn-primary" onClick={() => showToast('Generated Daily Fee Collection Register PDF.')}>
+                  <button className="admin-action-btn-primary" onClick={() => {
+                    downloadAccountsRegisterPdf(feeTransactions);
+                    showToast('Generated & downloaded Daily Fee Collection Register PDF.');
+                  }}>
                     <Download size={15} /> Download Register PDF
                   </button>
                 </div>
@@ -668,8 +678,8 @@ export default function AccountsPortal({ account, onLogout }) {
               </div>
             </div>
             <div className="admin-modal-footer">
-              <button className="admin-action-btn-secondary" onClick={() => alert('Printing receipt...')}>
-                <Printer size={15} /> Print
+              <button className="admin-action-btn-secondary" onClick={() => downloadFeeReceiptPdf(selectedReceipt)}>
+                <Download size={15} /> Download PDF Receipt
               </button>
               <button className="admin-action-btn-primary" onClick={() => setSelectedReceipt(null)}>
                 Done

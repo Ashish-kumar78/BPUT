@@ -6,6 +6,7 @@ import {
   FileText,
   Filter,
 } from 'lucide-react'
+import { downloadTimetablePdf } from '../utils/pdfGenerator'
 import './TimetablePage.css'
 
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -173,7 +174,9 @@ export default function TimetablePage() {
       <div className="timetable-note">
         <AlertCircle size={13} />
         Timetable is subject to change. Any modifications will be announced by the respective department.
-        <button className="timetable-download"><FileText size={12} />Download PDF</button>
+        <button className="timetable-download" onClick={() => downloadTimetablePdf(schedule)}>
+          <FileText size={12} />Download PDF
+        </button>
       </div>
     </div>
   )

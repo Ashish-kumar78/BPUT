@@ -155,167 +155,93 @@ export default function AttendancePage() {
         </div>
       )}
 
-      <div className="att-tabs" role="tablist">
-        {[['overview', 'Subject-wise'], ['calendar', 'Calendar View'], ['trend', 'Monthly Trend']].map(([k, l]) => (
-          <button key={k} className={tab === k ? 'active' : ''} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}>
-            {l}
-          </button>
-        ))}
-      </div>
-
-      {tab === 'overview' && (
-        <div className="att-subject-list">
-          {S.map(sub => {
-            const p = Math.round((sub.attended / sub.held) * 100)
-            const st = bs(p)
-            const nd = (sub.attended / sub.held) < TH / 100 ? Math.ceil(((TH / 100) * sub.held - sub.attended) / (1 - TH / 100)) : 0
-            const isExpanded = expandedSubject === sub.code
-            const history = isExpanded ? generateClassHistory(sub) : []
-            return (
-              <div key={sub.code} className="att-subject-card">
-                <div className="att-subject-meta">
-                  <div>
-                    <span className="att-type-tag">{sub.type}</span>
-                    <strong>{sub.name}</strong>
-                    <small>{sub.code} • {sub.faculty}</small>
-                  </div>
-                  <div className="att-subject-numbers">
-                    <span className={`att-pct-badge ${st}`}>{p}%</span>
-                    <small>{sub.attended}/{sub.held}</small>
-                    <button
-                      type="button"
-                      className={`att-history-toggle ${isExpanded ? 'active' : ''}`}
-                      onClick={() => setExpandedSubject(isExpanded ? null : sub.code)}
-                      title="Click to view date-wise attendance log"
-                    >
-                      <ScrollText size={13} />
-                      <span>{isExpanded ? 'Hide History' : 'Class History'}</span>
-                      {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-                    </button>
-                  </div>
+      <div className="att-subject-list">
+        {S.map(sub => {
+          const p = Math.round((sub.attended / sub.held) * 100)
+          const st = bs(p)
+          const nd = (sub.attended / sub.held) < TH / 100 ? Math.ceil(((TH / 100) * sub.held - sub.attended) / (1 - TH / 100)) : 0
+          const isExpanded = expandedSubject === sub.code
+          const history = isExpanded ? generateClassHistory(sub) : []
+          return (
+            <div key={sub.code} className="att-subject-card">
+              <div className="att-subject-meta">
+                <div>
+                  <span className="att-type-tag">{sub.type}</span>
+                  <strong>{sub.name}</strong>
+                  <small>{sub.code} • {sub.faculty}</small>
                 </div>
-                <div className="att-bar-track">
-                  <div className={`att-bar-fill ${st}`} style={{ width: `${p}%` }} role="progressbar" aria-valuenow={p} aria-valuemin="0" aria-valuemax="100" />
-                  <div className="att-threshold-marker" style={{ left: `${TH}%` }} />
+                <div className="att-subject-numbers">
+                  <span className={`att-pct-badge ${st}`}>{p}%</span>
+                  <small>{sub.attended}/{sub.held}</small>
+                  <button
+                    type="button"
+                    className={`att-history-toggle ${isExpanded ? 'active' : ''}`}
+                    onClick={() => setExpandedSubject(isExpanded ? null : sub.code)}
+                    title="Click to view date-wise attendance log"
+                  >
+                    <ScrollText size={13} />
+                    <span>{isExpanded ? 'Hide History' : 'Class History'}</span>
+                    {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                  </button>
                 </div>
-                {nd > 0 && (
-                  <p className="att-needed-note">
-                    <TrendingDown size={11} /> Need {nd} more consecutive classes to reach {TH}%.
-                  </p>
-                )}
+              </div>
+              <div className="att-bar-track">
+                <div className={`att-bar-fill ${st}`} style={{ width: `${p}%` }} role="progressbar" aria-valuenow={p} aria-valuemin="0" aria-valuemax="100" />
+                <div className="att-threshold-marker" style={{ left: `${TH}%` }} />
+              </div>
+              {nd > 0 && (
+                <p className="att-needed-note">
+                  <TrendingDown size={11} /> Need {nd} more consecutive classes to reach {TH}%.
+                </p>
+              )}
 
-                {isExpanded && (
-                  <div className="att-history-container">
-                    <div className="att-history-header">
-                      <p className="att-history-title">
-                        <ScrollText size={14} /> Date-wise Attendance Log — {sub.name} ({sub.code})
-                      </p>
-                      <span className="att-history-count">Held: {sub.held} | Present: {sub.attended} | Absent: {sub.held - sub.attended}</span>
-                    </div>
-                    <div className="att-history-table-wrapper">
-                      <table className="att-history-table">
-                        <thead>
-                          <tr>
-                            <th style={{ width: '70px', textAlign: 'center' }}>Sl. No.</th>
-                            <th>Class Date</th>
-                            <th style={{ width: '140px', textAlign: 'center' }}>Attendance</th>
+              {isExpanded && (
+                <div className="att-history-container">
+                  <div className="att-history-header">
+                    <p className="att-history-title">
+                      <ScrollText size={14} /> Date-wise Attendance Log — {sub.name} ({sub.code})
+                    </p>
+                    <span className="att-history-count">Held: {sub.held} | Present: {sub.attended} | Absent: {sub.held - sub.attended}</span>
+                  </div>
+                  <div className="att-history-table-wrapper">
+                    <table className="att-history-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: '70px', textAlign: 'center' }}>Sl. No.</th>
+                          <th>Class Date</th>
+                          <th style={{ width: '140px', textAlign: 'center' }}>Attendance</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {history.map((row) => (
+                          <tr key={row.slNo} className={row.status === 'Absent' ? 'row-absent' : 'row-present'}>
+                            <td className="sl-col" style={{ textAlign: 'center' }}>{row.slNo}</td>
+                            <td className="date-col">
+                              <CalendarDays size={13} />
+                              <span>{row.date}</span>
+                            </td>
+                            <td className="status-col" style={{ textAlign: 'center' }}>
+                              {row.status === 'Present' ? (
+                                <span className="att-status-badge present">
+                                  <CheckCircle2 size={12} /> Present
+                                </span>
+                              ) : (
+                                <span className="att-status-badge absent">
+                                  <XCircle size={12} /> Absent
+                                </span>
+                              )}
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          {history.map((row) => (
-                            <tr key={row.slNo} className={row.status === 'Absent' ? 'row-absent' : 'row-present'}>
-                              <td className="sl-col" style={{ textAlign: 'center' }}>{row.slNo}</td>
-                              <td className="date-col">
-                                <CalendarDays size={13} />
-                                <span>{row.date}</span>
-                              </td>
-                              <td className="status-col" style={{ textAlign: 'center' }}>
-                                {row.status === 'Present' ? (
-                                  <span className="att-status-badge present">
-                                    <CheckCircle2 size={12} /> Present
-                                  </span>
-                                ) : (
-                                  <span className="att-status-badge absent">
-                                    <XCircle size={12} /> Absent
-                                  </span>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      {tab === 'calendar' && (
-        <div className="att-calendar-section">
-          <div className="att-calendar-nav">
-            <button onClick={() => setVm(m => new Date(m.getFullYear(), m.getMonth() - 1, 1))} aria-label="Previous month">
-              <ChevronLeft size={16} />
-            </button>
-            <strong>{ml}</strong>
-            <button onClick={() => setVm(m => new Date(m.getFullYear(), m.getMonth() + 1, 1))} aria-label="Next month">
-              <ChevronRight size={16} />
-            </button>
-          </div>
-          <div className="att-cal-grid">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-              <span key={d} className="att-cal-day-label">{d}</span>
-            ))}
-            {cells.map((d, i) => (
-              <span key={i} className={`att-cal-cell ${gs(d)}`}>{d || ''}</span>
-            ))}
-          </div>
-          <div className="att-cal-legend">
-            <span><i className="legend-dot present" /> Present</span>
-            <span><i className="legend-dot absent" /> Absent</span>
-            <span><i className="legend-dot holiday" /> Holiday</span>
-            <span><i className="legend-dot weekend" /> Weekend</span>
-          </div>
-        </div>
-      )}
-
-      {tab === 'trend' && (
-        <div className="att-trend-section">
-          <p className="att-trend-caption">Month-by-month attendance percentage for the current academic year.</p>
-          <div className="att-bar-chart">
-            {M.map(({ month, pct: p }) => (
-              <div key={month} className="att-bar-chart-col">
-                <span className="att-bar-chart-label">{p}%</span>
-                <div className="att-bar-chart-track">
-                  <div className={`att-bar-chart-fill ${bs(p)}`} style={{ height: `${p}%` }} />
-                  <div className="att-bar-chart-threshold" style={{ bottom: `${TH}%` }} />
                 </div>
-                <span className="att-bar-chart-month">{month}</span>
-              </div>
-            ))}
-          </div>
-          <div className="att-trend-summary">
-            {M.map(({ month, pct: p }, i) => {
-              const prev = M[i - 1]
-              const delta = prev ? p - prev.pct : null
-              return (
-                <div key={month} className="att-trend-row">
-                  <strong>{month} 2026</strong>
-                  <span className={`att-pct-badge ${bs(p)}`}>{p}%</span>
-                  {delta !== null && (
-                    <span className={`att-delta ${delta >= 0 ? 'pos' : 'neg'}`}>
-                      {delta >= 0 ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
-                      {Math.abs(delta)}%
-                    </span>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
+              )}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

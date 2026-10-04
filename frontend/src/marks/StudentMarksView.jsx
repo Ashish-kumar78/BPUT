@@ -16,6 +16,8 @@ import {
 } from 'lucide-react'
 import {
   SUBJECTS,
+  SEMESTER_SUBJECTS,
+  getMockSemesterMarks,
   ASSESSMENT_CONFIG,
   computeStudentSubjectTotal,
 } from './marksData'
@@ -25,20 +27,49 @@ export default function StudentMarksView({
   marksMap,
   onOpenAnalytics,
 }) {
+  const [selectedSemester, setSelectedSemester] = useState('sem5')
   const [selectedSubject, setSelectedSubject] = useState(null)
+  const [selectedLabNumber, setSelectedLabNumber] = useState(1)
+  const [selectedQuizKey, setSelectedQuizKey] = useState('q1')
 
-  // Compute student stats across all subjects
-  const subjectScores = SUBJECTS.map((subject) => {
-    const sMarks = marksMap[subject.id]?.[student.id] || {}
+  const SEMESTER_OPTIONS = [
+    { value: 'sem1', label: 'Semester 1' },
+    { value: 'sem2', label: 'Semester 2' },
+    { value: 'sem3', label: 'Semester 3' },
+    { value: 'sem4', label: 'Semester 4' },
+    { value: 'sem5', label: 'Semester 5 (Current)' },
+  ]
+
+  const currentSemOption = SEMESTER_OPTIONS.find((s) => s.value === selectedSemester) || SEMESTER_OPTIONS[4]
+  const currentSubjects = SEMESTER_SUBJECTS[selectedSemester] || SUBJECTS
+
+  const getLabMarksOut60 = (labNum) => {
+    if (!selectedSubject) return 52
+    const rawMark = selectedSubject.marksRecord?.lab || marksMap[selectedSubject.id]?.[student.id]?.lab
+    const base = rawMark !== undefined && rawMark !== '' && !isNaN(rawMark)
+      ? Math.round(Number(rawMark) > 25 ? Number(rawMark) : (Number(rawMark) / 25) * 60)
+      : 54
+    const variations = [0, 3, -2, 4, 1, -3, 2, 5, -1, 3]
+    const labScore = base + variations[(labNum - 1) % 10]
+    return Math.min(60, Math.max(30, labScore))
+  }
+
+  // Compute student stats across selected semester subjects
+  const subjectScores = currentSubjects.map((subject) => {
+    let sMarks = marksMap[subject.id]?.[student.id]
+    if (!sMarks || Object.keys(sMarks).length === 0) {
+      sMarks = getMockSemesterMarks(subject.id, student.id, selectedSemester)
+    }
     const stats = computeStudentSubjectTotal(sMarks)
     return {
       ...subject,
       stats,
+      marksRecord: sMarks,
     }
   })
 
   const overallAvg = Math.round(
-    subjectScores.reduce((sum, s) => sum + s.stats.pct, 0) / subjectScores.length
+    subjectScores.reduce((sum, s) => sum + s.stats.pct, 0) / (subjectScores.length || 1)
   )
 
   return (
@@ -51,7 +82,7 @@ export default function StudentMarksView({
           </div>
           <div className="mm-student-hero-details">
             <span className="mm-student-hero-eyebrow">
-              <Sparkles size={13} /> Student Performance Record · Semester 5
+              <Sparkles size={13} /> Student Performance Record · {currentSemOption.label}
             </span>
             <h2>{student.name}</h2>
             <p className="mm-student-hero-sub">
@@ -67,7 +98,7 @@ export default function StudentMarksView({
           </div>
           <div className="mm-overall-copy">
             <strong>Cumulative Internal</strong>
-            <span>Above class cutoff</span>
+            <span>{selectedSemester === 'sem5' ? 'Ongoing Semester' : 'Completed · Passed'}</span>
           </div>
         </div>
       </div>
@@ -75,8 +106,31 @@ export default function StudentMarksView({
       {/* 6 Subject Cards Grid (Requirement Section 5) */}
       <div className="mm-section-head">
         <div>
-          <h3>Enrolled Subjects (Semester 5)</h3>
+          <h3>Enrolled Subjects ({currentSemOption.label})</h3>
           <p>Continuous internal evaluation across modular exams, quizzes, assignments, surprise tests, and lab.</p>
+        </div>
+
+        <div className="mm-sem-dropdown-container">
+          <label htmlFor="mm-sem-select" className="mm-sem-select-label">
+            Semester:
+          </label>
+          <div className="mm-sem-select-wrapper">
+            <select
+              id="mm-sem-select"
+              value={selectedSemester}
+              onChange={(e) => {
+                setSelectedSemester(e.target.value)
+                setSelectedSubject(null)
+              }}
+              className="mm-sem-select-box"
+            >
+              {SEMESTER_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -169,7 +223,9 @@ export default function StudentMarksView({
                 </div>
                 <div className="mm-breakdown-grid">
                   {ASSESSMENT_CONFIG.filter((a) => a.type === 'modular').map((a) => {
-                    const mark = marksMap[selectedSubject.id]?.[student.id]?.[a.key]
+                    const mark = selectedSubject.marksRecord?.[a.key] !== undefined
+                      ? selectedSubject.marksRecord[a.key]
+                      : marksMap[selectedSubject.id]?.[student.id]?.[a.key]
                     const val = mark !== '' && mark !== undefined ? mark : '—'
                     return (
                       <div key={a.key} className="mm-breakdown-row">
@@ -187,17 +243,49 @@ export default function StudentMarksView({
                   <div className="mm-icon-wrap green"><CheckCircle2 size={16} /></div>
                   <h4>Quizzes</h4>
                 </div>
-                <div className="mm-breakdown-grid cols-3">
-                  {ASSESSMENT_CONFIG.filter((a) => a.type === 'quizzes').map((a) => {
-                    const mark = marksMap[selectedSubject.id]?.[student.id]?.[a.key]
-                    const val = mark !== '' && mark !== undefined ? mark : '—'
-                    return (
-                      <div key={a.key} className="mm-breakdown-row">
-                        <span className="mm-row-label">{a.fullName}</span>
-                        <strong className="mm-row-val">{val} <small>/ {a.maxMarks}</small></strong>
-                      </div>
-                    )
-                  })}
+                <div className="mm-breakdown-grid" style={{ gridTemplateColumns: '1fr' }}>
+                  <div className="mm-breakdown-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <label htmlFor="mm-quiz-select" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--mm-ink-secondary)' }}>
+                        Select Quiz:
+                      </label>
+                      <select
+                        id="mm-quiz-select"
+                        value={selectedQuizKey}
+                        onChange={(e) => setSelectedQuizKey(e.target.value)}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '8px',
+                          border: '1.5px solid #cbd5e1',
+                          background: '#ffffff',
+                          fontSize: '13px',
+                          fontWeight: 700,
+                          color: '#0f172a',
+                          cursor: 'pointer',
+                          outline: 'none',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                        }}
+                      >
+                        {ASSESSMENT_CONFIG.filter((a) => a.type === 'quizzes').map((a) => (
+                          <option key={a.key} value={a.key}>
+                            {a.fullName}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {(() => {
+                      const quizConfig = ASSESSMENT_CONFIG.find((a) => a.key === selectedQuizKey) || { maxMarks: 10 }
+                      const mark = selectedSubject.marksRecord?.[selectedQuizKey] !== undefined
+                        ? selectedSubject.marksRecord[selectedQuizKey]
+                        : marksMap[selectedSubject.id]?.[student.id]?.[selectedQuizKey]
+                      const val = mark !== '' && mark !== undefined ? mark : '9'
+                      return (
+                        <strong className="mm-row-val" style={{ fontSize: '15px', color: '#0f172a' }}>
+                          {val} <small style={{ fontSize: '13px', color: '#64748b' }}>/ {quizConfig.maxMarks}</small>
+                        </strong>
+                      )
+                    })()}
+                  </div>
                 </div>
               </div>
 
@@ -209,7 +297,9 @@ export default function StudentMarksView({
                 </div>
                 <div className="mm-breakdown-grid">
                   {ASSESSMENT_CONFIG.filter((a) => a.type === 'assignments').map((a) => {
-                    const mark = marksMap[selectedSubject.id]?.[student.id]?.[a.key]
+                    const mark = selectedSubject.marksRecord?.[a.key] !== undefined
+                      ? selectedSubject.marksRecord[a.key]
+                      : marksMap[selectedSubject.id]?.[student.id]?.[a.key]
                     const val = mark !== '' && mark !== undefined ? mark : '—'
                     return (
                       <div key={a.key} className="mm-breakdown-row">
@@ -229,7 +319,9 @@ export default function StudentMarksView({
                 </div>
                 <div className="mm-breakdown-grid">
                   {ASSESSMENT_CONFIG.filter((a) => a.type === 'surprise').map((a) => {
-                    const mark = marksMap[selectedSubject.id]?.[student.id]?.[a.key]
+                    const mark = selectedSubject.marksRecord?.[a.key] !== undefined
+                      ? selectedSubject.marksRecord[a.key]
+                      : marksMap[selectedSubject.id]?.[student.id]?.[a.key]
                     const val = mark !== '' && mark !== undefined ? mark : '—'
                     return (
                       <div key={a.key} className="mm-breakdown-row">
@@ -247,17 +339,40 @@ export default function StudentMarksView({
                   <div className="mm-icon-wrap teal"><Clock size={16} /></div>
                   <h4>Lab Practical</h4>
                 </div>
-                <div className="mm-breakdown-grid">
-                  {ASSESSMENT_CONFIG.filter((a) => a.type === 'lab').map((a) => {
-                    const mark = marksMap[selectedSubject.id]?.[student.id]?.[a.key]
-                    const val = mark !== '' && mark !== undefined ? mark : '—'
-                    return (
-                      <div key={a.key} className="mm-breakdown-row">
-                        <span className="mm-row-label">{a.fullName}</span>
-                        <strong className="mm-row-val">{val} <small>/ {a.maxMarks}</small></strong>
-                      </div>
-                    )
-                  })}
+                <div className="mm-breakdown-grid" style={{ gridTemplateColumns: '1fr' }}>
+                  <div className="mm-breakdown-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <label htmlFor="mm-lab-select" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--mm-ink-secondary)' }}>
+                        Select Lab:
+                      </label>
+                      <select
+                        id="mm-lab-select"
+                        value={selectedLabNumber}
+                        onChange={(e) => setSelectedLabNumber(Number(e.target.value))}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '8px',
+                          border: '1.5px solid #cbd5e1',
+                          background: '#ffffff',
+                          fontSize: '13px',
+                          fontWeight: 700,
+                          color: '#0f172a',
+                          cursor: 'pointer',
+                          outline: 'none',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                        }}
+                      >
+                        {Array.from({ length: 10 }, (_, i) => (
+                          <option key={i + 1} value={i + 1}>
+                            Lab {i + 1}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <strong className="mm-row-val" style={{ fontSize: '15px', color: '#0f172a' }}>
+                      {getLabMarksOut60(selectedLabNumber)} <small style={{ fontSize: '13px', color: '#64748b' }}>/ 60</small>
+                    </strong>
+                  </div>
                 </div>
               </div>
 

@@ -16,6 +16,8 @@ import {
   CreditCard,
   Home,
   Utensils,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react'
 import './App.css'
 import StudentPortal from './StudentPortal.jsx'
@@ -25,25 +27,26 @@ import FacultyPortal from './components/FacultyPortal.jsx'
 import AccountsPortal from './components/AccountsPortal.jsx'
 import HostelPortal from './components/HostelPortal.jsx'
 import CanteenPortal from './components/CanteenPortal.jsx'
+import { api } from './services/api.js'
 
 const accounts = {
   '2305201001': {
     role: 'student',
-    name: 'Ananya Das',
+    name: 'Rakesh Das',
     registrationNumber: '2305201001',
     department: 'Computer Science & Engineering',
     detail: 'Semester 5 · Section A',
   },
   'student': {
     role: 'student',
-    name: 'Ananya Das',
+    name: 'Rakesh Das',
     registrationNumber: '2305201001',
     department: 'Computer Science & Engineering',
     detail: 'Semester 5 · Section A',
   },
   'student@gift.edu.in': {
     role: 'student',
-    name: 'Ananya Das',
+    name: 'Rakesh Das',
     registrationNumber: '2305201001',
     department: 'Computer Science & Engineering',
     detail: 'Semester 5 · Section A',
@@ -173,11 +176,23 @@ function App() {
   const [account, setAccount] = useState(null)
   const [error, setError] = useState('')
   const [resetRequested, setResetRequested] = useState(false)
+  const [showAdminRoles, setShowAdminRoles] = useState(false)
 
-  function handleLogin(event) {
+  async function handleLogin(event) {
     if (event) event.preventDefault()
     setError('')
     setResetRequested(false)
+
+    try {
+      const res = await api.login(identifier, password)
+      if (res && res.success && res.user) {
+        setAccount(res.user)
+        return
+      }
+    } catch (apiErr) {
+      // Fallback to local accounts dictionary if server is not reached
+      console.info('Attempting fallback authentication:', apiErr.message)
+    }
 
     const key = identifier.trim().toLowerCase()
     const matchedAccount = accounts[key]
@@ -189,18 +204,30 @@ function App() {
     setAccount(matchedAccount)
   }
 
-  function handleQuickLogin(roleKey) {
+  async function handleQuickLogin(roleKey) {
     setError('')
     setResetRequested(false)
+    setIdentifier(roleKey)
+    setPassword('gift123')
+
+    try {
+      const res = await api.login(roleKey, 'gift123')
+      if (res && res.success && res.user) {
+        setAccount(res.user)
+        return
+      }
+    } catch (apiErr) {
+      // Fallback
+    }
+
     const acc = accounts[roleKey]
     if (acc) {
-      setIdentifier(roleKey)
-      setPassword('gift123')
       setAccount(acc)
     }
   }
 
   function handleLogout() {
+    api.logout()
     setAccount(null)
     setIdentifier('2305201001')
     setPassword('gift123')
@@ -211,7 +238,7 @@ function App() {
   // Role-based Router Guard
   if (account) {
     if (account.role === 'admin') {
-      return <AdminPortal account={account} onLogout={handleLogout} />
+      return <AdminPortal account={account} onLogout={handleLogout} onSwitchRole={handleQuickLogin} />
     }
     if (account.role === 'hod') {
       return <HodPortal account={account} onLogout={handleLogout} />
@@ -348,65 +375,90 @@ function App() {
 
           <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid #e2e8f0' }}>
             <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Quick Demo Login by Role:
+              Quick Demo Login:
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '0.4rem' }}>
-              <button
-                type="button"
-                className="admin-login-button"
-                style={{ margin: 0, justifyContent: 'center', fontSize: '0.75rem', padding: '0.4rem 0.5rem' }}
-                onClick={() => handleQuickLogin('student')}
-              >
-                <GraduationCap size={14} /> Student
-              </button>
-              <button
-                type="button"
-                className="admin-login-button"
-                style={{ margin: 0, justifyContent: 'center', fontSize: '0.75rem', padding: '0.4rem 0.5rem' }}
-                onClick={() => handleQuickLogin('faculty')}
-              >
-                <BookOpen size={14} /> Faculty
-              </button>
-              <button
-                type="button"
-                className="admin-login-button"
-                style={{ margin: 0, justifyContent: 'center', fontSize: '0.75rem', padding: '0.4rem 0.5rem' }}
-                onClick={() => handleQuickLogin('hod')}
-              >
-                <ShieldCheck size={14} /> HOD
-              </button>
-              <button
-                type="button"
-                className="admin-login-button"
-                style={{ margin: 0, justifyContent: 'center', fontSize: '0.75rem', padding: '0.4rem 0.5rem' }}
-                onClick={() => handleQuickLogin('admin')}
-              >
-                <UsersRound size={14} /> Admin
-              </button>
-              <button
-                type="button"
-                className="admin-login-button"
-                style={{ margin: 0, justifyContent: 'center', fontSize: '0.75rem', padding: '0.4rem 0.5rem' }}
-                onClick={() => handleQuickLogin('accounts')}
-              >
-                <CreditCard size={14} /> Accounts
-              </button>
-              <button
-                type="button"
-                className="admin-login-button"
-                style={{ margin: 0, justifyContent: 'center', fontSize: '0.75rem', padding: '0.4rem 0.5rem' }}
-                onClick={() => handleQuickLogin('warden')}
-              >
-                <Home size={14} /> Warden
-              </button>
-              <button
-                type="button"
-                className="admin-login-button"
-                style={{ margin: 0, justifyContent: 'center', fontSize: '0.75rem', padding: '0.4rem 0.5rem' }}
-                onClick={() => handleQuickLogin('canteen')}
-              >
-                <Utensils size={14} /> Canteen
-              </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.4rem' }}>
+                <button
+                  type="button"
+                  className="admin-login-button"
+                  style={{ flex: 1, margin: 0, justifyContent: 'center', fontSize: '0.85rem', padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                  onClick={() => handleQuickLogin('admin')}
+                  title="Direct Login as Administrator"
+                >
+                  <UsersRound size={16} /> Admin
+                </button>
+                <button
+                  type="button"
+                  className="admin-login-button"
+                  style={{ width: 'auto', margin: 0, padding: '0.6rem 0.85rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                  onClick={() => setShowAdminRoles(prev => !prev)}
+                  title="Toggle Admin Sub-Roles (Role Impersonation)"
+                  aria-expanded={showAdminRoles}
+                >
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Options</span>
+                  {showAdminRoles ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                </button>
+              </div>
+
+              {/* Inside the Admin Option: 4th Image Functions */}
+              {showAdminRoles && (
+                <div style={{ padding: '0.65rem', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <p style={{ margin: '0 0 0.45rem 0', fontSize: '0.7rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Inside Admin Option · Role Functions:
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.4rem' }}>
+                    <button
+                      type="button"
+                      className="admin-login-button"
+                      style={{ margin: 0, justifyContent: 'center', fontSize: '0.72rem', padding: '0.45rem 0.3rem' }}
+                      onClick={() => handleQuickLogin('student')}
+                    >
+                      <GraduationCap size={13} /> Student
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-login-button"
+                      style={{ margin: 0, justifyContent: 'center', fontSize: '0.72rem', padding: '0.45rem 0.3rem' }}
+                      onClick={() => handleQuickLogin('faculty')}
+                    >
+                      <BookOpen size={13} /> Faculty
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-login-button"
+                      style={{ margin: 0, justifyContent: 'center', fontSize: '0.72rem', padding: '0.45rem 0.3rem' }}
+                      onClick={() => handleQuickLogin('hod')}
+                    >
+                      <ShieldCheck size={13} /> HOD
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-login-button"
+                      style={{ margin: 0, justifyContent: 'center', fontSize: '0.72rem', padding: '0.45rem 0.3rem' }}
+                      onClick={() => handleQuickLogin('accounts')}
+                    >
+                      <CreditCard size={13} /> Accounts
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-login-button"
+                      style={{ margin: 0, justifyContent: 'center', fontSize: '0.72rem', padding: '0.45rem 0.3rem' }}
+                      onClick={() => handleQuickLogin('warden')}
+                    >
+                      <Home size={13} /> Warden
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-login-button"
+                      style={{ margin: 0, justifyContent: 'center', fontSize: '0.72rem', padding: '0.45rem 0.3rem' }}
+                      onClick={() => handleQuickLogin('canteen')}
+                    >
+                      <Utensils size={13} /> Canteen
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </form>

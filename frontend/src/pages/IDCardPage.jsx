@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { 
   CreditCard, 
   Download, 
@@ -9,12 +9,23 @@ import {
   CheckCircle2,
   Lock
 } from 'lucide-react'
+import { downloadIdCardPdf } from '../utils/pdfGenerator'
 import './IDCardPage.css'
 
 export default function IDCardPage() {
   const [downloadSuccess, setDownloadSuccess] = useState(false)
 
   const handleDownload = () => {
+    downloadIdCardPdf({
+      name: 'Aarav Sharma',
+      rollNo: '2301289140',
+      course: 'B.Tech',
+      branch: 'Computer Science & Engineering',
+      semester: '7th Sem',
+      bloodGroup: 'O+',
+      rfidTag: 'RF-882194',
+      hostel: 'Block C - 204'
+    })
     setDownloadSuccess(true)
     setTimeout(() => setDownloadSuccess(false), 3000)
   }
@@ -56,9 +67,8 @@ export default function IDCardPage() {
           </div>
 
           <div className="idcard-main-info">
-            <div className="idcard-photo-box">
-              <span style={{ fontSize: '2rem' }}>👨‍🎓</span>
-              <span>PHOTO</span>
+            <div className="idcard-photo-box" style={{ padding: 0, overflow: 'hidden' }}>
+              <img src="/passport_photo_male.svg" alt="Aarav Sharma" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
             <div className="idcard-details">
               <h2 className="idcard-name">Aarav Sharma</h2>

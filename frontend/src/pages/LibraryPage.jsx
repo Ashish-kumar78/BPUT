@@ -12,6 +12,7 @@ import {
   Star,
   User,
 } from 'lucide-react'
+import { downloadLibraryBookPdf } from '../utils/pdfGenerator'
 import './LibraryPage.css'
 
 const catalog = [
@@ -155,7 +156,9 @@ export default function LibraryPage() {
                       {book.available > 0 && <ChevronRight size={12} />}
                     </button>
                   )}
-                  <button className="book-detail-btn"><Download size={12} />E-Copy</button>
+                  <button className="book-detail-btn" onClick={() => downloadLibraryBookPdf(book)}>
+                    <Download size={12} />E-Copy
+                  </button>
                 </div>
               </div>
             ))}
