@@ -203,3 +203,7 @@ export const api = {
       body: JSON.stringify({ message, history }),
     }),
 };
+
+export { feesApi } from './feesApi';
+export { notesApi } from './notesApi';
+

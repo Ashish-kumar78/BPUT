@@ -59,6 +59,7 @@ import IDCardPage from './pages/IDCardPage.jsx'
 import BiometricPage from './pages/BiometricPage.jsx'
 import CanteenPage from './pages/CanteenPage.jsx'
 import StudentHostelPage from './pages/StudentHostelPage.jsx'
+import ClassNotesPage from './pages/ClassNotesPage.jsx'
 import { api } from './services/api.js'
 
 const profilePageTabMap = {
@@ -69,6 +70,8 @@ const profilePageTabMap = {
 
 const navigation = [
   { label: 'Dashboard', icon: Home, page: 'dashboard' },
+  { label: 'Class Notes & Sharing', icon: FileText, page: 'class-notes' },
+  { label: 'Fees & Accounts', icon: CreditCard, page: 'fees' },
   { label: 'Hostel Residence', icon: Building2, page: 'hostel' },
   { label: 'Library', icon: LibraryBig, page: 'library' },
   { label: 'Academics', icon: BookOpen, page: 'academics' },
@@ -546,6 +549,7 @@ function StudentPortal({ account, onLogout }) {
                 <span>/</span>
                 <strong>{activeLink}</strong>
               </div>
+              {activePage === 'class-notes' && <ClassNotesPage account={account} />}
               {activePage === 'marks' && <MarksPage initialRole="student" />}
               {activePage === 'hostel' && <StudentHostelPage />}
               {activePage === 'fees' && <FeesPage />}

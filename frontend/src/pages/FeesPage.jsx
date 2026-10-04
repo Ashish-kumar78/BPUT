@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { 
   CreditCard, 
   Download, 
@@ -14,9 +14,17 @@ import {
   Calendar,
   Layers,
   FileCheck,
-  X
+  X,
+  UploadCloud,
+  FileText,
+  Eye,
+  Award,
+  ShieldCheck,
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react'
 import { downloadFeeReceiptPdf } from '../utils/pdfGenerator'
+import { feesApi } from '../services/feesApi'
 import './FeesPage.css'
 
 export const yearlyFeeLedger = [
@@ -71,18 +79,14 @@ export const yearlyFeeLedger = [
 ];
 
 export const feeHistory = [
-  // 4th Year (Current 2026-27)
   { id: 'TXN-98421', term: 'Semester 7 (4th Year)', head: 'Tuition & Development Fee', amount: 48500, paid: 48500, status: 'Paid', date: '12 Aug 2026', mode: 'Net Banking (HDFC)' },
   { id: 'TXN-98422', term: 'Semester 7 (4th Year)', head: 'Examination & University Reg.', amount: 3500, paid: 3500, status: 'Paid', date: '15 Aug 2026', mode: 'UPI' },
   { id: 'TXN-98423', term: 'Semester 7 (4th Year)', head: 'Hostel & Mess Charges', amount: 32000, paid: 20000, due: 12000, status: 'Partial', date: '20 Aug 2026', mode: 'Credit Card' },
   { id: 'TXN-98424', term: 'Semester 7 (4th Year)', head: 'Library & Laboratory Caution', amount: 5000, paid: 5000, status: 'Paid', date: '10 Aug 2026', mode: 'Challan' },
-  // 3rd Year (2025-26)
   { id: 'TXN-87211', term: 'Semester 6 (3rd Year)', head: 'Full Semester Academic Package', amount: 41000, paid: 41000, status: 'Paid', date: '18 Jan 2026', mode: 'Net Banking' },
   { id: 'TXN-76192', term: 'Semester 5 (3rd Year)', head: 'Full Semester Academic Package', amount: 41000, paid: 41000, status: 'Paid', date: '22 Jul 2025', mode: 'Net Banking' },
-  // 2nd Year (2024-25)
   { id: 'TXN-24751', term: 'Semester 4 (2nd Year)', head: 'Tuition & Examination Fee', amount: 39200, paid: 39200, status: 'Paid', date: '12 Jan 2025', mode: 'UPI' },
   { id: 'TXN-24103', term: 'Semester 3 (2nd Year)', head: 'Tuition & Development Fee', amount: 39200, paid: 39200, status: 'Paid', date: '10 Jul 2024', mode: 'Net Banking' },
-  // 1st Year (2023-24)
   { id: 'TXN-23842', term: 'Semester 2 (1st Year)', head: 'Tuition & Laboratory Fee', amount: 35000, paid: 35000, status: 'Paid', date: '15 Jan 2024', mode: 'Net Banking' },
   { id: 'TXN-23011', term: 'Semester 1 (1st Year)', head: 'Admission & 1st Sem Tuition', amount: 40000, paid: 40000, status: 'Paid', date: '12 Aug 2023', mode: 'Online SBI' },
 ];
@@ -94,10 +98,160 @@ export default function FeesPage() {
   const [selectedPayMode, setSelectedPayMode] = useState('upi')
   const [paidSuccess, setPaidSuccess] = useState(false)
 
-  // Overall calculations from 1st Year to till now
-  const totalOverallPaid = yearlyFeeLedger.reduce((sum, item) => sum + item.amountPaid, 0) // ₹3,12,400
-  const totalOverallDues = yearlyFeeLedger.reduce((sum, item) => sum + item.totalDue, 0)    // ₹3,24,400
+  // Feature 1: Upload Payment Proof State
+  const [showProofModal, setShowProofModal] = useState(false)
+  const [proofHistory, setProofHistory] = useState([])
+  const [proofStep, setProofStep] = useState('form') // 'form' | 'preview'
+  const [submittingProof, setSubmittingProof] = useState(false)
+  const [selectedProofView, setSelectedProofView] = useState(null)
+
+  // Form inputs
+  const [formAmount, setFormAmount] = useState('12000')
+  const [formDate, setFormDate] = useState(() => new Date().toISOString().split('T')[0])
+  const [formMethod, setFormMethod] = useState('UPI')
+  const [formTxnId, setFormTxnId] = useState('')
+  const [formRefNo, setFormRefNo] = useState('')
+  const [formRemarks, setFormRemarks] = useState('')
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [filePreviewUrl, setFilePreviewUrl] = useState('')
+  const [fileTypeError, setFileTypeError] = useState('')
+  const [formErrors, setFormErrors] = useState({})
+  const [toastMessage, setToastMessage] = useState('')
+
+  // Overall calculations
+  const totalOverallPaid = yearlyFeeLedger.reduce((sum, item) => sum + item.amountPaid, 0)
+  const totalOverallDues = yearlyFeeLedger.reduce((sum, item) => sum + item.totalDue, 0)
   const overallClearedPercent = ((totalOverallPaid / totalOverallDues) * 100).toFixed(1)
+
+  // Load digital payment proof history
+  useEffect(() => {
+    loadFeeStatement()
+  }, [])
+
+  const loadFeeStatement = async () => {
+    const data = await feesApi.getFeeStatement('2305201001')
+    if (data && data.paymentHistory) {
+      setProofHistory(data.paymentHistory)
+    }
+  }
+
+  const triggerToast = (msg) => {
+    setToastMessage(msg)
+    setTimeout(() => setToastMessage(''), 4000)
+  }
+
+  // Handle File Selection
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    setFileTypeError('')
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf']
+    const maxBytes = 5 * 1024 * 1024 // 5 MB
+
+    if (!allowedTypes.includes(file.type.toLowerCase())) {
+      setFileTypeError('Invalid file type. Supported formats: JPG, JPEG, PNG, WEBP, PDF.')
+      triggerToast('Invalid file type! Only images and PDFs are allowed.')
+      return
+    }
+
+    if (file.size > maxBytes) {
+      setFileTypeError('File size exceeds the 5MB allowed limit.')
+      triggerToast('File size exceeds the 5MB allowed limit.')
+      return
+    }
+
+    setSelectedFile(file)
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader()
+      reader.onload = (evt) => setFilePreviewUrl(evt.target.result)
+      reader.readAsDataURL(file)
+    } else {
+      setFilePreviewUrl('PDF_FILE')
+    }
+  }
+
+  // Form Validation & Proceed to Preview
+  const handleProceedToPreview = (e) => {
+    e.preventDefault()
+    const errors = {}
+
+    const amt = Number(formAmount)
+    if (isNaN(amt) || amt <= 0) {
+      errors.amount = 'Amount must be greater than zero.'
+    }
+    if (!formDate) {
+      errors.date = 'Payment date is required.'
+    }
+    if (!formMethod) {
+      errors.method = 'Payment method must be selected.'
+    }
+    if (!formTxnId.trim()) {
+      errors.txnId = 'Transaction ID / UTR Number is required.'
+    }
+    if (!selectedFile) {
+      errors.file = 'Please upload your transaction proof.'
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors)
+      triggerToast(Object.values(errors)[0])
+      return
+    }
+
+    setFormErrors({})
+    setProofStep('preview')
+  }
+
+  // Submit Payment Proof
+  const handleSubmitProof = async () => {
+    if (submittingProof) return
+    setSubmittingProof(true)
+
+    const payload = {
+      amount: formAmount,
+      paymentDate: formDate,
+      paymentMethod: formMethod,
+      transactionId: formTxnId.trim(),
+      referenceNumber: formRefNo.trim(),
+      remarks: formRemarks.trim(),
+      previewUrl: filePreviewUrl,
+      fileName: selectedFile ? selectedFile.name : 'proof.png',
+      fileType: selectedFile ? selectedFile.type : 'image/png',
+      studentName: 'Rakesh Das',
+      rollNumber: '2305201001',
+      department: 'Computer Science & Engineering'
+    }
+
+    try {
+      const res = await feesApi.uploadPaymentProof(payload)
+      if (res && res.success) {
+        triggerToast('Payment proof submitted successfully for verification!')
+        await loadFeeStatement()
+        setShowProofModal(false)
+        resetProofForm()
+        setActiveTab('proofs')
+      }
+    } catch {
+      triggerToast('Failed to submit payment proof. Please try again.')
+    } finally {
+      setSubmittingProof(false)
+    }
+  }
+
+  const resetProofForm = () => {
+    setProofStep('form')
+    setFormAmount('12000')
+    setFormDate(new Date().toISOString().split('T')[0])
+    setFormMethod('UPI')
+    setFormTxnId('')
+    setFormRefNo('')
+    setFormRemarks('')
+    setSelectedFile(null)
+    setFilePreviewUrl('')
+    setFileTypeError('')
+    setFormErrors({})
+  }
 
   const handlePay = () => {
     setPaidSuccess(true)
@@ -109,7 +263,7 @@ export default function FeesPage() {
 
   const handleDownload = (id) => {
     const row = feeHistory.find(item => item.id === id) || { id, amount: 48500, head: 'Tuition Fee', mode: 'Net Banking' }
-    downloadFeeReceiptPdf(row, { name: 'Aarav Sharma', rollNo: '2301289140' })
+    downloadFeeReceiptPdf(row, { name: 'Rakesh Das', rollNo: '2305201001' })
   }
 
   const handleDownloadConsolidatedStatement = () => {
@@ -121,17 +275,47 @@ export default function FeesPage() {
       paid: totalOverallPaid,
       mode: 'Consolidated Electronic Transfer',
       date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-    }, { name: 'Aarav Sharma', rollNo: '2301289140' })
+    }, { name: 'Rakesh Das', rollNo: '2305201001' })
+  }
+
+  const getStatusBadge = (status) => {
+    const st = (status || '').toUpperCase()
+    if (st === 'APPROVED' || st === 'VERIFIED') {
+      return <span className="fee-badge paid"><CheckCircle2 size={12} /> ✓ Payment Verified</span>
+    }
+    if (st === 'REJECTED') {
+      return <span className="fee-badge partial" style={{ background: '#fef2f2', color: '#dc2626', borderColor: '#fca5a5' }}><X size={12} /> ✕ Payment Rejected</span>
+    }
+    return <span className="fee-badge partial" style={{ background: '#fffbeb', color: '#d97706', borderColor: '#fcd34d' }}><Clock size={12} /> ⏳ Pending Verification</span>
   }
 
   return (
     <div className="fees-page">
+      {toastMessage && (
+        <div className="fees-toast" role="alert">
+          <AlertCircle size={16} />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       <div className="fees-header">
         <div>
-          <h1 className="fees-title">Fees & Accounts Statement</h1>
-          <p className="fees-subtitle">Monitor academic dues, hostel invoices, and official BPUT clearance slips</p>
+          <h1 className="fees-title">Fees & Accounts Portal</h1>
+          <p className="fees-subtitle">Track college fee dues, digital payment receipts, scholarship grants & upload transaction proofs</p>
         </div>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button 
+            type="button"
+            className="btn-receipt"
+            style={{ background: '#e0e7ff', borderColor: '#6366f1', color: '#4338ca', padding: '10px 16px', fontSize: '0.86rem', fontWeight: 700 }}
+            onClick={() => {
+              resetProofForm()
+              setShowProofModal(true)
+            }}
+          >
+            <UploadCloud size={17} />
+            <span>Upload Payment Proof</span>
+          </button>
           <button 
             type="button"
             className="btn-receipt"
@@ -148,72 +332,72 @@ export default function FeesPage() {
         </div>
       </div>
 
-      {/* Metrics Row: 5 Cards including Overall Paid from 1st Year Till Now */}
+      {/* Metrics Row */}
       <div className="fees-metrics">
-        {/* Card 1: Overall Amount Paid from 1st Year to Till Now (NEW FUNCTION) */}
+        {/* Card 1: Total Fee */}
+        <div className="fee-metric-card">
+          <div className="fee-metric-icon blue"><DollarSign size={24} /></div>
+          <div className="fee-metric-body">
+            <h4>Total College Fee</h4>
+            <div className="fee-val">₹89,000</div>
+            <div className="fee-sub">Semester 7 · Session 2026–27</div>
+          </div>
+        </div>
+
+        {/* Card 2: Scholarship Amount */}
+        <div className="fee-metric-card" style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%)', border: '1px solid #bbf7d0' }}>
+          <div className="fee-metric-icon green" style={{ background: '#dcfce7', color: '#15803d' }}><Award size={24} /></div>
+          <div className="fee-metric-body">
+            <h4>Scholarship Amount</h4>
+            <div className="fee-val" style={{ color: '#15803d' }}>₹15,000</div>
+            <div className="fee-sub" style={{ color: '#166534', fontWeight: 600 }}>PRERANA Post-Matric Grant</div>
+          </div>
+        </div>
+
+        {/* Card 3: Paid Amount */}
+        <div className="fee-metric-card">
+          <div className="fee-metric-icon green"><CheckCircle2 size={24} /></div>
+          <div className="fee-metric-body">
+            <h4>Paid Amount</h4>
+            <div className="fee-val">₹77,000</div>
+            <div className="fee-sub">86.5% cleared</div>
+          </div>
+        </div>
+
+        {/* Card 4: Pending Amount */}
+        <div className="fee-metric-card">
+          <div className="fee-metric-icon amber"><Clock size={24} /></div>
+          <div className="fee-metric-body">
+            <h4>Pending Balance</h4>
+            <div className="fee-val" style={{ color: '#d97706' }}>₹12,000</div>
+            <div className="fee-sub">Due date: 30 Oct 2026</div>
+          </div>
+        </div>
+
+        {/* Card 5: Overall Paid 4-Years */}
         <div 
           className="fee-metric-card interactive" 
           onClick={() => setShowYearlyModal(true)}
-          title="Click to view complete year-by-year fee breakdown from 1st Year to till now"
+          title="Click to view complete year-by-year fee breakdown"
           style={{ border: '1.5px solid #818cf8', background: 'linear-gradient(180deg, #ffffff 0%, #f8faff 100%)' }}
         >
           <div className="fee-metric-icon indigo"><History size={24} /></div>
           <div className="fee-metric-body" style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
-              <h4>Overall Paid (1st Yr – Now)</h4>
+              <h4>Overall Paid (4-Years)</h4>
               <span style={{ fontSize: '0.66rem', fontWeight: 700, background: '#e0e7ff', color: '#4338ca', padding: '2px 6px', borderRadius: '4px' }}>
                 All Years
               </span>
             </div>
             <div className="fee-val" style={{ color: '#4338ca' }}>₹{totalOverallPaid.toLocaleString('en-IN')}</div>
             <div className="fee-sub" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#6366f1', fontWeight: 600 }}>
-              <span>{overallClearedPercent}% cleared</span> · <span>Yearly Breakdown →</span>
+              <span>{overallClearedPercent}% cleared</span> · <span>Details →</span>
             </div>
-          </div>
-        </div>
-
-        {/* Card 2: Total Annual Dues */}
-        <div className="fee-metric-card">
-          <div className="fee-metric-icon blue"><DollarSign size={24} /></div>
-          <div className="fee-metric-body">
-            <h4>Total Annual Dues</h4>
-            <div className="fee-val">₹89,000</div>
-            <div className="fee-sub">Academic Session 2026-27</div>
-          </div>
-        </div>
-
-        {/* Card 3: Total Paid (Current Year) */}
-        <div className="fee-metric-card">
-          <div className="fee-metric-icon green"><CheckCircle2 size={24} /></div>
-          <div className="fee-metric-body">
-            <h4>Total Paid</h4>
-            <div className="fee-val">₹77,000</div>
-            <div className="fee-sub">86.5% cleared</div>
-          </div>
-        </div>
-
-        {/* Card 4: Outstanding Balance */}
-        <div className="fee-metric-card">
-          <div className="fee-metric-icon amber"><Clock size={24} /></div>
-          <div className="fee-metric-body">
-            <h4>Outstanding Balance</h4>
-            <div className="fee-val" style={{ color: '#d97706' }}>₹12,000</div>
-            <div className="fee-sub">Due by: 30 Oct 2026</div>
-          </div>
-        </div>
-
-        {/* Card 5: Hostel Caution Deposit */}
-        <div className="fee-metric-card">
-          <div className="fee-metric-icon purple"><Wallet size={24} /></div>
-          <div className="fee-metric-body">
-            <h4>Hostel Caution Deposit</h4>
-            <div className="fee-val">₹5,000</div>
-            <div className="fee-sub">Refundable upon course end</div>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Navigation Tabs */}
       <div className="fees-tabs">
         <button 
           className={`fee-tab-btn ${activeTab === 'current' ? 'active' : ''}`}
@@ -222,10 +406,16 @@ export default function FeesPage() {
           Current Semester Invoices
         </button>
         <button 
+          className={`fee-tab-btn ${activeTab === 'proofs' ? 'active' : ''}`}
+          onClick={() => setActiveTab('proofs')}
+        >
+          Digital Payment Proofs ({proofHistory.length})
+        </button>
+        <button 
           className={`fee-tab-btn ${activeTab === 'yearly' ? 'active' : ''}`}
           onClick={() => setActiveTab('yearly')}
         >
-          Year-Wise Ledger (1st Year to Till Now)
+          Year-Wise Ledger (1st Year to Date)
         </button>
         <button 
           className={`fee-tab-btn ${activeTab === 'history' ? 'active' : ''}`}
@@ -235,8 +425,156 @@ export default function FeesPage() {
         </button>
       </div>
 
-      {/* Section Content based on selected tab */}
-      {activeTab === 'yearly' ? (
+      {/* Tab 1: Current Invoices */}
+      {activeTab === 'current' && (
+        <div className="fees-section-card">
+          <div className="fee-sec-header">
+            <h3>Semester 7 Current Academic Invoices</h3>
+            <span style={{ fontSize: '0.84rem', color: '#64748b' }}>Curated Accounts Ledger</span>
+          </div>
+
+          <div className="fee-table-wrap">
+            <table className="fee-table">
+              <thead>
+                <tr>
+                  <th>Receipt ID</th>
+                  <th>Semester / Session</th>
+                  <th>Fee Head</th>
+                  <th>Total Invoiced</th>
+                  <th>Paid Amount</th>
+                  <th>Status</th>
+                  <th>Payment Mode</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {feeHistory
+                  .filter(item => item.term.includes('Semester 7'))
+                  .map((row) => (
+                    <tr key={row.id}>
+                      <td><strong style={{ fontFamily: 'monospace', color: '#2563eb' }}>{row.id}</strong></td>
+                      <td>{row.term}</td>
+                      <td>{row.head}</td>
+                      <td><strong>₹{row.amount.toLocaleString('en-IN')}</strong></td>
+                      <td>₹{row.paid.toLocaleString('en-IN')}</td>
+                      <td>
+                        <span className={`fee-badge ${row.status.toLowerCase()}`}>
+                          {row.status === 'Paid' && <CheckCircle2 size={12} />}
+                          {row.status === 'Partial' && <AlertCircle size={12} />}
+                          {row.status}
+                        </span>
+                      </td>
+                      <td><small style={{ color: '#64748b' }}>{row.mode}</small></td>
+                      <td>
+                        <button className="btn-receipt" onClick={() => handleDownload(row.id)}>
+                          <Download size={14} />
+                          Receipt
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 2: Digital Payment Proofs (FEATURE 1) */}
+      {activeTab === 'proofs' && (
+        <div className="fees-section-card">
+          <div className="fee-sec-header" style={{ flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <h3>Uploaded Payment Proofs & Digital Verification Tracker</h3>
+              <p style={{ margin: '2px 0 0', fontSize: '0.84rem', color: '#64748b' }}>
+                Track approval status of digital screenshots & bank transfer receipts submitted to the Accounts section.
+              </p>
+            </div>
+            <button 
+              type="button" 
+              className="btn-pay-now" 
+              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+              onClick={() => {
+                resetProofForm()
+                setShowProofModal(true)
+              }}
+            >
+              <UploadCloud size={16} /> Upload New Proof
+            </button>
+          </div>
+
+          {proofHistory.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#64748b' }}>
+              <UploadCloud size={48} style={{ opacity: 0.4, marginBottom: '12px' }} />
+              <h4>No payment proofs uploaded yet</h4>
+              <p style={{ fontSize: '0.88rem' }}>Upload your UPI or bank transfer screenshot to avoid visiting the Accounts section physically.</p>
+              <button 
+                type="button" 
+                className="btn-receipt"
+                style={{ marginTop: '12px', display: 'inline-flex', gap: '6px' }}
+                onClick={() => {
+                  resetProofForm()
+                  setShowProofModal(true)
+                }}
+              >
+                Upload Payment Proof
+              </button>
+            </div>
+          ) : (
+            <div className="fee-table-wrap">
+              <table className="fee-table">
+                <thead>
+                  <tr>
+                    <th>Proof ID</th>
+                    <th>Payment Date</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Transaction ID / UTR</th>
+                    <th>Verification Status</th>
+                    <th>Submitted At</th>
+                    <th>Action / Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {proofHistory.map((item) => (
+                    <tr key={item.id}>
+                      <td><strong style={{ fontFamily: 'monospace', color: '#4338ca' }}>{item.id}</strong></td>
+                      <td>{item.paymentDate}</td>
+                      <td><strong style={{ color: '#0f172a' }}>₹{Number(item.amount).toLocaleString('en-IN')}</strong></td>
+                      <td><span style={{ fontSize: '0.78rem', background: '#e0e7ff', color: '#3730a3', padding: '3px 8px', borderRadius: '4px', fontWeight: 600 }}>{item.paymentMethod}</span></td>
+                      <td><code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', color: '#0f172a' }}>{item.transactionId}</code></td>
+                      <td>{getStatusBadge(item.status)}</td>
+                      <td><small style={{ color: '#64748b' }}>{item.submittedAt ? new Date(item.submittedAt).toLocaleDateString() : 'Today'}</small></td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <button 
+                            type="button"
+                            className="btn-receipt" 
+                            style={{ padding: '4px 10px', fontSize: '0.76rem' }}
+                            onClick={() => setSelectedProofView(item)}
+                          >
+                            <Eye size={13} /> View Proof
+                          </button>
+                          {item.status === 'REJECTED' && item.rejectionReason && (
+                            <span 
+                              title={`Rejection Reason: ${item.rejectionReason}`}
+                              style={{ cursor: 'pointer', color: '#dc2626', display: 'inline-flex', alignItems: 'center' }}
+                            >
+                              <AlertTriangle size={15} />
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab 3: Year-Wise Ledger */}
+      {activeTab === 'yearly' && (
         <div className="fees-section-card">
           <div className="fee-sec-header">
             <div>
@@ -249,26 +587,6 @@ export default function FeesPage() {
               <Download size={14} />
               Consolidated Statement PDF
             </button>
-          </div>
-
-          {/* Quick Summary Pill Bar */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', padding: '16px', background: '#f8fafc', borderRadius: '12px', marginBottom: '20px', border: '1px solid #e2e8f0' }}>
-            <div>
-              <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Total 4-Year Demand:</span>
-              <p style={{ margin: '4px 0 0', fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>₹{totalOverallDues.toLocaleString('en-IN')}</p>
-            </div>
-            <div>
-              <span style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 600, textTransform: 'uppercase' }}>Overall Amount Paid:</span>
-              <p style={{ margin: '4px 0 0', fontSize: '1.15rem', fontWeight: 800, color: '#059669' }}>₹{totalOverallPaid.toLocaleString('en-IN')}</p>
-            </div>
-            <div>
-              <span style={{ fontSize: '0.75rem', color: '#d97706', fontWeight: 600, textTransform: 'uppercase' }}>Net Pending Balance:</span>
-              <p style={{ margin: '4px 0 0', fontSize: '1.15rem', fontWeight: 800, color: '#d97706' }}>₹12,000</p>
-            </div>
-            <div>
-              <span style={{ fontSize: '0.75rem', color: '#4338ca', fontWeight: 600, textTransform: 'uppercase' }}>Program Clearance:</span>
-              <p style={{ margin: '4px 0 0', fontSize: '1.15rem', fontWeight: 800, color: '#4338ca' }}>{overallClearedPercent}% Completed</p>
-            </div>
           </div>
 
           <div className="fee-table-wrap">
@@ -316,10 +634,13 @@ export default function FeesPage() {
             </table>
           </div>
         </div>
-      ) : (
+      )}
+
+      {/* Tab 4: All Receipts */}
+      {activeTab === 'history' && (
         <div className="fees-section-card">
           <div className="fee-sec-header">
-            <h3>{activeTab === 'current' ? 'Semester 7 Fee Breakdown' : 'All Past Transactions & Ledgers (1st Year to Till Now)'}</h3>
+            <h3>All Past Transactions & Ledgers (1st Year to Till Now)</h3>
             <span style={{ fontSize: '0.84rem', color: '#64748b' }}>Curated Accounts Ledger</span>
           </div>
 
@@ -338,38 +659,297 @@ export default function FeesPage() {
                 </tr>
               </thead>
               <tbody>
-                {feeHistory
-                  .filter(item => activeTab === 'current' ? item.term.includes('Semester 7') : true)
-                  .map((row) => (
-                    <tr key={row.id}>
-                      <td><strong style={{ fontFamily: 'monospace', color: '#2563eb' }}>{row.id}</strong></td>
-                      <td>{row.term}</td>
-                      <td>{row.head}</td>
-                      <td><strong>₹{row.amount.toLocaleString('en-IN')}</strong></td>
-                      <td>₹{row.paid.toLocaleString('en-IN')}</td>
-                      <td>
-                        <span className={`fee-badge ${row.status.toLowerCase()}`}>
-                          {row.status === 'Paid' && <CheckCircle2 size={12} />}
-                          {row.status === 'Partial' && <AlertCircle size={12} />}
-                          {row.status}
-                        </span>
-                      </td>
-                      <td><small style={{ color: '#64748b' }}>{row.mode}</small></td>
-                      <td>
-                        <button className="btn-receipt" onClick={() => handleDownload(row.id)}>
-                          <Download size={14} />
-                          Receipt
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                {feeHistory.map((row) => (
+                  <tr key={row.id}>
+                    <td><strong style={{ fontFamily: 'monospace', color: '#2563eb' }}>{row.id}</strong></td>
+                    <td>{row.term}</td>
+                    <td>{row.head}</td>
+                    <td><strong>₹{row.amount.toLocaleString('en-IN')}</strong></td>
+                    <td>₹{row.paid.toLocaleString('en-IN')}</td>
+                    <td>
+                      <span className={`fee-badge ${row.status.toLowerCase()}`}>
+                        {row.status === 'Paid' && <CheckCircle2 size={12} />}
+                        {row.status === 'Partial' && <AlertCircle size={12} />}
+                        {row.status}
+                      </span>
+                    </td>
+                    <td><small style={{ color: '#64748b' }}>{row.mode}</small></td>
+                    <td>
+                      <button className="btn-receipt" onClick={() => handleDownload(row.id)}>
+                        <Download size={14} />
+                        Receipt
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         </div>
       )}
 
-      {/* Interactive Modal: Overall Paid from 1st Year to Till Now */}
+      {/* MODAL 1: Upload Payment Proof Modal (FEATURE 1) */}
+      {showProofModal && (
+        <div className="payment-modal-backdrop" onClick={() => setShowProofModal(false)}>
+          <div className="payment-modal" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
+            <button className="payment-modal-close" onClick={() => setShowProofModal(false)}>×</button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+              <div className="fee-metric-icon indigo" style={{ width: '38px', height: '38px' }}><UploadCloud size={20} /></div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#0f172a', fontWeight: 800 }}>Upload Payment Proof</h3>
+                <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#64748b' }}>
+                  Submit UPI, Bank Transfer or Challan screenshot for Accounts verification
+                </p>
+              </div>
+            </div>
+
+            {proofStep === 'form' ? (
+              <form onSubmit={handleProceedToPreview}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                      Payment Amount (₹) <span style={{ color: '#dc2626' }}>*</span>
+                    </label>
+                    <input 
+                      type="number"
+                      min="1"
+                      className="fee-input"
+                      value={formAmount}
+                      onChange={(e) => setFormAmount(e.target.value)}
+                      placeholder="e.g. 12000"
+                      required
+                    />
+                    {formErrors.amount && <small style={{ color: '#dc2626' }}>{formErrors.amount}</small>}
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                      Payment Date <span style={{ color: '#dc2626' }}>*</span>
+                    </label>
+                    <input 
+                      type="date"
+                      className="fee-input"
+                      value={formDate}
+                      onChange={(e) => setFormDate(e.target.value)}
+                      required
+                    />
+                    {formErrors.date && <small style={{ color: '#dc2626' }}>{formErrors.date}</small>}
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                      Payment Method <span style={{ color: '#dc2626' }}>*</span>
+                    </label>
+                    <select 
+                      className="fee-input"
+                      value={formMethod}
+                      onChange={(e) => setFormMethod(e.target.value)}
+                      required
+                    >
+                      <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
+                      <option value="Bank Transfer">Bank Transfer (IMPS / Account)</option>
+                      <option value="NEFT">NEFT</option>
+                      <option value="RTGS">RTGS</option>
+                      <option value="Other">Other / Bank Challan</option>
+                    </select>
+                    {formErrors.method && <small style={{ color: '#dc2626' }}>{formErrors.method}</small>}
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                      Transaction ID / UTR Number <span style={{ color: '#dc2626' }}>*</span>
+                    </label>
+                    <input 
+                      type="text"
+                      className="fee-input"
+                      value={formTxnId}
+                      onChange={(e) => setFormTxnId(e.target.value)}
+                      placeholder="e.g. UPI9823471029 or UTR..."
+                      required
+                    />
+                    {formErrors.txnId && <small style={{ color: '#dc2626' }}>{formErrors.txnId}</small>}
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                      Reference Number (Optional)
+                    </label>
+                    <input 
+                      type="text"
+                      className="fee-input"
+                      value={formRefNo}
+                      onChange={(e) => setFormRefNo(e.target.value)}
+                      placeholder="e.g. REF-2026-98"
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                      Remarks / Purpose
+                    </label>
+                    <input 
+                      type="text"
+                      className="fee-input"
+                      value={formRemarks}
+                      onChange={(e) => setFormRemarks(e.target.value)}
+                      placeholder="e.g. Sem 7 tuition fee partial"
+                    />
+                  </div>
+                </div>
+
+                {/* File Upload Zone */}
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                    Upload Transaction Screenshot / PDF <span style={{ color: '#dc2626' }}>*</span>
+                  </label>
+                  <div style={{ border: '2px dashed #cbd5e1', borderRadius: '10px', padding: '16px', textAlign: 'center', background: '#f8fafc', cursor: 'pointer' }}>
+                    <input 
+                      type="file" 
+                      id="payment-proof-file"
+                      accept=".jpg,.jpeg,.png,.webp,.pdf"
+                      onChange={handleFileChange}
+                      style={{ display: 'none' }}
+                    />
+                    <label htmlFor="payment-proof-file" style={{ cursor: 'pointer', display: 'block' }}>
+                      <UploadCloud size={32} style={{ color: '#6366f1', marginBottom: '6px' }} />
+                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
+                        {selectedFile ? selectedFile.name : 'Click or drag & drop payment proof'}
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '4px' }}>
+                        Supported formats: JPG, JPEG, PNG, WEBP, PDF · Max size: 5MB
+                      </div>
+                    </label>
+                  </div>
+                  {fileTypeError && <div style={{ color: '#dc2626', fontSize: '0.78rem', marginTop: '4px' }}>{fileTypeError}</div>}
+                  {formErrors.file && <div style={{ color: '#dc2626', fontSize: '0.78rem', marginTop: '4px' }}>{formErrors.file}</div>}
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingTop: '10px', borderTop: '1px solid #e2e8f0' }}>
+                  <button type="button" className="btn-receipt" onClick={() => setShowProofModal(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn-pay-now" style={{ padding: '8px 20px' }}>
+                    Preview Proof & Details →
+                  </button>
+                </div>
+              </form>
+            ) : (
+              /* FEATURE 1 — STEP 3: IMAGE / PROOF PREVIEW BEFORE SUBMIT */
+              <div>
+                <div style={{ background: '#f1f5f9', borderRadius: '10px', padding: '12px', marginBottom: '14px', border: '1px solid #cbd5e1' }}>
+                  <h4 style={{ margin: '0 0 8px', fontSize: '0.9rem', color: '#0f172a', fontWeight: 700 }}>Transaction Proof Confirmation</h4>
+
+                  {/* Image / File Display */}
+                  <div style={{ textAlign: 'center', background: '#ffffff', borderRadius: '8px', padding: '10px', border: '1px solid #e2e8f0', marginBottom: '12px', maxHeight: '200px', overflow: 'hidden' }}>
+                    {filePreviewUrl === 'PDF_FILE' ? (
+                      <div style={{ padding: '20px', color: '#4338ca' }}>
+                        <FileText size={48} style={{ margin: '0 auto 8px', display: 'block' }} />
+                        <strong>{selectedFile?.name || 'Document.pdf'}</strong>
+                        <div style={{ fontSize: '0.78rem', color: '#64748b' }}>PDF Document Attached ({Math.round((selectedFile?.size || 0) / 1024)} KB)</div>
+                      </div>
+                    ) : (
+                      <img 
+                        src={filePreviewUrl} 
+                        alt="Transaction Proof Preview" 
+                        style={{ maxHeight: '180px', maxWidth: '100%', objectFit: 'contain', borderRadius: '6px' }}
+                      />
+                    )}
+                  </div>
+
+                  {/* Details Summary */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.82rem', color: '#334155' }}>
+                    <div><strong>Amount:</strong> ₹{Number(formAmount).toLocaleString('en-IN')}</div>
+                    <div><strong>Date:</strong> {formDate}</div>
+                    <div><strong>Method:</strong> {formMethod}</div>
+                    <div><strong>Txn ID:</strong> <code style={{ color: '#4338ca' }}>{formTxnId}</code></div>
+                    {formRefNo && <div><strong>Ref No:</strong> {formRefNo}</div>}
+                    {formRemarks && <div><strong>Remarks:</strong> {formRemarks}</div>}
+                  </div>
+                </div>
+
+                <div style={{ background: '#eff6ff', padding: '10px 14px', borderRadius: '8px', fontSize: '0.78rem', color: '#1e40af', marginBottom: '14px', border: '1px solid #bfdbfe' }}>
+                  ℹ️ Payment details will be routed to Accounts for digital verification. Status will remain <strong>PENDING VERIFICATION</strong> until approved by Accounts.
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'space-between' }}>
+                  <button 
+                    type="button" 
+                    className="btn-receipt"
+                    onClick={() => setProofStep('form')}
+                  >
+                    ← Replace Image / Edit
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn-pay-now"
+                    onClick={handleSubmitProof}
+                    disabled={submittingProof}
+                  >
+                    {submittingProof ? 'Submitting...' : 'Submit for Verification ✓'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: View Single Proof Details & Image Zoom */}
+      {selectedProofView && (
+        <div className="payment-modal-backdrop" onClick={() => setSelectedProofView(null)}>
+          <div className="payment-modal" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
+            <button className="payment-modal-close" onClick={() => setSelectedProofView(null)}>×</button>
+            
+            <h3 style={{ margin: '0 0 10px', fontSize: '1.2rem', color: '#0f172a' }}>Payment Proof Details</h3>
+            
+            <div style={{ textAlign: 'center', background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '14px', maxHeight: '300px', overflowY: 'auto' }}>
+              {selectedProofView.fileType === 'application/pdf' ? (
+                <div style={{ padding: '30px' }}>
+                  <FileText size={56} style={{ color: '#4338ca', marginBottom: '8px' }} />
+                  <div><strong>{selectedProofView.fileName || 'Payment_Proof.pdf'}</strong></div>
+                  <a href={selectedProofView.proofUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.82rem', color: '#2563eb', marginTop: '6px', display: 'inline-block' }}>Open PDF in New Window ↗</a>
+                </div>
+              ) : (
+                <img 
+                  src={selectedProofView.proofUrl} 
+                  alt="Proof Document" 
+                  style={{ width: '100%', maxHeight: '280px', objectFit: 'contain', borderRadius: '6px' }}
+                />
+              )}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.84rem', background: '#f1f5f9', padding: '12px', borderRadius: '8px', marginBottom: '14px' }}>
+              <div><strong>Proof ID:</strong> {selectedProofView.id}</div>
+              <div><strong>Status:</strong> {getStatusBadge(selectedProofView.status)}</div>
+              <div><strong>Amount:</strong> ₹{Number(selectedProofView.amount).toLocaleString('en-IN')}</div>
+              <div><strong>Payment Date:</strong> {selectedProofView.paymentDate}</div>
+              <div><strong>Method:</strong> {selectedProofView.paymentMethod}</div>
+              <div><strong>Txn ID:</strong> <code style={{ color: '#4338ca' }}>{selectedProofView.transactionId}</code></div>
+              {selectedProofView.referenceNumber && <div><strong>Ref No:</strong> {selectedProofView.referenceNumber}</div>}
+              {selectedProofView.remarks && <div><strong>Remarks:</strong> {selectedProofView.remarks}</div>}
+            </div>
+
+            {selectedProofView.status === 'REJECTED' && selectedProofView.rejectionReason && (
+              <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', padding: '10px 14px', borderRadius: '8px', color: '#991b1b', fontSize: '0.82rem', marginBottom: '14px' }}>
+                <strong>Rejection Reason:</strong> {selectedProofView.rejectionReason}
+              </div>
+            )}
+
+            <div style={{ textAlign: 'right' }}>
+              <button type="button" className="btn-receipt" onClick={() => setSelectedProofView(null)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: Overall Paid from 1st Year Modal */}
       {showYearlyModal && (
         <div className="payment-modal-backdrop" onClick={() => setShowYearlyModal(false)}>
           <div className="payment-modal" style={{ maxWidth: '640px' }} onClick={e => e.stopPropagation()}>
@@ -382,7 +962,6 @@ export default function FeesPage() {
               </div>
             </div>
 
-            {/* Total Highlight Bar */}
             <div style={{ background: 'linear-gradient(135deg, #1e1b4b, #312e81)', color: '#ffffff', borderRadius: '12px', padding: '16px 20px', margin: '16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
               <div>
                 <span style={{ fontSize: '0.78rem', color: '#c7d2fe', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Total Cumulative Paid:</span>
@@ -395,7 +974,6 @@ export default function FeesPage() {
               </div>
             </div>
 
-            {/* Year-by-Year Cards */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto', paddingRight: '4px' }}>
               {yearlyFeeLedger.map((y) => (
                 <div key={y.year} style={{ padding: '12px 14px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -438,7 +1016,7 @@ export default function FeesPage() {
         </div>
       )}
 
-      {/* Pay Modal */}
+      {/* MODAL 4: Gateway Pay Modal */}
       {showPayModal && (
         <div className="payment-modal-backdrop" onClick={() => setShowPayModal(false)}>
           <div className="payment-modal" onClick={e => e.stopPropagation()}>

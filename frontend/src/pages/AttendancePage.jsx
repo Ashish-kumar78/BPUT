@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   AlertTriangle,
   CalendarDays,
@@ -11,7 +11,13 @@ import {
   TrendingDown,
   TrendingUp,
   XCircle,
+  BookOpen,
+  Eye,
+  Info,
+  Layers,
+  ArrowRight
 } from 'lucide-react'
+import { notesApi } from '../services/notesApi'
 import './AttendancePage.css'
 
 const S = [
@@ -21,13 +27,6 @@ const S = [
   { code: 'CS504', name: 'Compiler Design', faculty: 'Dr. A. Panda', held: 40, attended: 38, type: 'Theory' },
   { code: 'CS505', name: 'AI Lab', faculty: 'Dr. P. Mohapatra', held: 20, attended: 20, type: 'Lab' },
   { code: 'CS506', name: 'Project Work - Phase I', faculty: 'Dr. S. Mohanty', held: 14, attended: 13, type: 'Project' }
-]
-
-const M = [
-  { month: 'Jul', pct: 96 },
-  { month: 'Aug', pct: 94 },
-  { month: 'Sep', pct: 88 },
-  { month: 'Oct', pct: 92 }
 ]
 
 function generateClassHistory(sub) {
@@ -53,7 +52,7 @@ function generateClassHistory(sub) {
     }
   }
 
-  const startDate = new Date(2026, 6, 15) // 15 July 2026
+  const startDate = new Date(2026, 6, 15)
   const dates = []
   const curr = new Date(startDate)
 
@@ -80,54 +79,36 @@ function generateClassHistory(sub) {
   return dates
 }
 
-function genMap() {
-  const map = {}
-  const absents = [3, 10, 17]
-  const holidays = [2, 14, 15, 16]
-  for (let d = 1; d <= 31; d++) {
-    const date = new Date(2026, 9, d)
-    if (date.getMonth() !== 9) break
-    const key = '2026-10-' + d
-    if (holidays.includes(d)) map[key] = 'holiday'
-    else if (date.getDay() === 0 || date.getDay() === 6) map[key] = 'weekend'
-    else if (absents.includes(d)) map[key] = 'absent'
-    else if (d <= new Date().getDate()) map[key] = 'present'
-  }
-  return map
-}
-
-const CM = genMap()
 const TH = 75
 
 export default function AttendancePage() {
-  const [vm, setVm] = useState(() => new Date(2026, 9, 1))
-  const [tab, setTab] = useState('overview')
   const [expandedSubject, setExpandedSubject] = useState(null)
+  const [missedClasses, setMissedClasses] = useState([])
+
   const held = S.reduce((s, r) => s + r.held, 0)
   const att = S.reduce((s, r) => s + r.attended, 0)
   const pct = Math.round((att / held) * 100)
   const missed = held - att
   const low = S.filter(s => Math.round((s.attended / s.held) * 100) < TH)
-  const ml = new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' }).format(vm)
-  const fd = new Date(vm.getFullYear(), vm.getMonth(), 1).getDay()
-  const dim = new Date(vm.getFullYear(), vm.getMonth() + 1, 0).getDate()
-  const cells = []
-  for (let i = 0; i < fd; i++) cells.push(null)
-  for (let d = 1; d <= dim; d++) cells.push(d)
-  const gs = d => {
-    if (!d) return ''
-    const k = vm.getFullYear() + '-' + (vm.getMonth() + 1) + '-' + d
-    return CM[k] || ''
-  }
+
   const bs = p => p >= 85 ? 'excellent' : p >= 75 ? 'good' : p >= 65 ? 'warn' : 'danger'
+
+  useEffect(() => {
+    loadMissedClasses()
+  }, [])
+
+  const loadMissedClasses = async () => {
+    const data = await notesApi.getMissedClasses()
+    if (data) setMissedClasses(data)
+  }
 
   return (
     <div className="attendance-page">
       <div className="attendance-header">
         <div>
-          <p className="att-kicker"><CalendarDays size={13} /> ATTENDANCE</p>
+          <p className="att-kicker"><CalendarDays size={13} /> ATTENDANCE & MISSED LECTURES</p>
           <h2>Attendance Dashboard</h2>
-          <p className="att-caption">Track your class attendance across all subjects for Semester 5.</p>
+          <p className="att-caption">Track class attendance & access peer-shared class notes for missed lectures</p>
         </div>
         <div className="att-overall-badge">
           <span className="att-pct-circle">{pct}%</span>
@@ -145,6 +126,71 @@ export default function AttendancePage() {
         <div className="att-stat-card purple"><TrendingUp size={18} /><strong>{pct}%</strong><span>Rate</span></div>
       </div>
 
+      {/* FEATURE 2 — REQUIREMENTS 10 & 11: MISSED CLASSES & CLASS NOTES CONNECTOR */}
+      <div className="missed-classes-card" style={{ background: '#ffffff', border: '1.5px solid #6366f1', borderRadius: '16px', padding: '20px', marginBottom: '24px', boxShadow: '0 4px 14px rgba(99,102,241,0.08)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#0f172a', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <BookOpen size={18} style={{ color: '#4338ca' }} />
+              Missed Classes & Available Peer Notes
+            </h3>
+            <p style={{ margin: '3px 0 0', fontSize: '0.84rem', color: '#64748b' }}>
+              Automatically synced with your class attendance log. Access handwritten notes & board photos for lectures you missed.
+            </p>
+          </div>
+          <button 
+            type="button" 
+            style={{ padding: '6px 12px', background: '#e0e7ff', color: '#3730a3', border: '1px solid #c7d2fe', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            onClick={() => { window.location.hash = 'class-notes' }}
+          >
+            All Class Notes Hub <ArrowRight size={14} />
+          </button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+          {missedClasses.map((item) => (
+            <div key={item.id} style={{ background: item.notesAvailable ? '#f8fafc' : '#fff5f5', border: item.notesAvailable ? '1px solid #cbd5e1' : '1px solid #fca5a5', borderRadius: '12px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '0.74rem', background: '#fee2e2', color: '#b91c1c', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                    Status: Absent
+                  </span>
+                  <small style={{ color: '#64748b' }}>{item.date}</small>
+                </div>
+                <strong style={{ fontSize: '0.98rem', color: '#0f172a', display: 'block' }}>{item.subject}</strong>
+                <p style={{ margin: '4px 0 8px', fontSize: '0.8rem', color: '#475569' }}>Topic: {item.topic}</p>
+              </div>
+
+              <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '8px', marginTop: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                {item.notesAvailable ? (
+                  <>
+                    <span style={{ fontSize: '0.78rem', color: '#15803d', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <CheckCircle2 size={13} /> Notes Available ({item.notesCount} sets)
+                    </span>
+                    <button 
+                      type="button" 
+                      style={{ background: '#4338ca', color: '#ffffff', border: 'none', borderRadius: '6px', padding: '4px 10px', fontSize: '0.76rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      onClick={() => { window.location.hash = 'class-notes' }}
+                    >
+                      <Eye size={12} /> View Notes
+                    </button>
+                  </>
+                ) : (
+                  <span style={{ fontSize: '0.78rem', color: '#dc2626', fontWeight: 600 }}>
+                    ✕ No notes uploaded yet
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ background: '#eff6ff', borderRadius: '8px', padding: '8px 12px', fontSize: '0.76rem', color: '#1e40af', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Info size={14} />
+          <span>Attendance records remain strictly controlled by authorized faculty members. Students cannot edit attendance logs.</span>
+        </div>
+      </div>
+
       {low.length > 0 && (
         <div className="att-alert">
           <AlertTriangle size={15} />
@@ -155,6 +201,7 @@ export default function AttendancePage() {
         </div>
       )}
 
+      {/* Subjects Attendance List */}
       <div className="att-subject-list">
         {S.map(sub => {
           const p = Math.round((sub.attended / sub.held) * 100)

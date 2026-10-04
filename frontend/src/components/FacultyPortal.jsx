@@ -21,12 +21,50 @@ import '../components/AdminPortal.css';
 import { downloadDepartmentGazettePdf } from '../utils/pdfGenerator';
 import { generateAllStudents } from '../data/collegeData.js';
 import MarksManagementModule from '../marks/MarksManagementModule.jsx';
+import { notesApi } from '../services/notesApi.js';
+import { ShieldCheck, Eye, Flag, Trash2 } from 'lucide-react';
 
 export default function FacultyPortal({ account, onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedSubject, setSelectedSubject] = useState('Data Structures');
   const [students] = useState(() => generateAllStudents());
   const [studentSearch, setStudentSearch] = useState('');
+
+  // Feature 2: Class Notes Moderation State
+  const [moderationNotesList, setModerationNotesList] = useState([]);
+  const [toastMsg, setToastMsg] = useState('');
+
+  const triggerToast = (msg) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(''), 3500);
+  };
+
+  React.useEffect(() => {
+    loadModerationNotes();
+  }, []);
+
+  const loadModerationNotes = async () => {
+    const list = await notesApi.getClassNotes({ subject: 'ALL' });
+    if (list) setModerationNotesList(list);
+  };
+
+  const handleVerifyNote = async (id) => {
+    const facultyName = account?.name || 'Dr. Pratyush Mohapatra';
+    const res = await notesApi.verifyNoteByFaculty(id, facultyName);
+    if (res && res.success) {
+      triggerToast('✓ Class note marked as Faculty Verified!');
+      await loadModerationNotes();
+    }
+  };
+
+  const handleHideNote = async (id) => {
+    const res = await notesApi.hideNoteByFaculty(id);
+    if (res && res.success) {
+      triggerToast('✕ Class note hidden from students.');
+      await loadModerationNotes();
+    }
+  };
+
 
   const assignedSubjects = [
     {
@@ -121,6 +159,12 @@ export default function FacultyPortal({ account, onLogout }) {
             onClick={() => setActiveTab('reports')}
           >
             <FileText size={17} /> Grade Reports
+          </button>
+          <button
+            className={`faculty-nav-btn ${activeTab === 'notes-moderation' ? 'active' : ''}`}
+            onClick={() => setActiveTab('notes-moderation')}
+          >
+            <ShieldCheck size={17} /> Class Notes Moderation
           </button>
         </aside>
 
@@ -431,6 +475,98 @@ export default function FacultyPortal({ account, onLogout }) {
                   <button className="admin-action-btn-primary" onClick={() => downloadDepartmentGazettePdf('Operating Systems (CS502) CIA Gazette')}>
                     <Download size={15} /> Download PDF Sheet
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 7: CLASS NOTES MODERATION (FEATURE 2) */}
+          {activeTab === 'notes-moderation' && (
+            <div>
+              {toastMsg && (
+                <div style={{ position: 'fixed', top: '20px', right: '20px', background: '#0f172a', color: '#fff', padding: '12px 18px', borderRadius: '8px', zIndex: 9999 }}>
+                  {toastMsg}
+                </div>
+              )}
+
+              <div className="admin-view-header">
+                <div>
+                  <h2>Class Notes & Peer Material Moderation Desk</h2>
+                  <p>Review student-uploaded handwritten notes, verify academic accuracy, and moderate reported content.</p>
+                </div>
+              </div>
+
+              <div className="admin-card">
+                <div className="admin-table-container">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Subject & Topic</th>
+                        <th>Lecture Date</th>
+                        <th>Uploaded By</th>
+                        <th>Status</th>
+                        <th>Reports</th>
+                        <th style={{ textAlign: 'right' }}>Faculty Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {moderationNotesList.map((n) => (
+                        <tr key={n.id}>
+                          <td>
+                            <strong style={{ color: '#0f172a' }}>{n.topic}</strong>
+                            <div style={{ fontSize: '0.78rem', color: '#4338ca', fontWeight: 600 }}>{n.subject}</div>
+                          </td>
+                          <td>{n.date}</td>
+                          <td>
+                            <div>{n.uploadedBy?.name}</div>
+                            <small style={{ color: '#64748b' }}>Roll {n.uploadedBy?.rollNumber}</small>
+                          </td>
+                          <td>
+                            {n.isFacultyVerified ? (
+                              <span className="admin-badge approved">✓ Faculty Verified</span>
+                            ) : n.status === 'HIDDEN' ? (
+                              <span className="admin-badge inactive">Hidden</span>
+                            ) : (
+                              <span className="admin-badge pending">Student Uploaded</span>
+                            )}
+                          </td>
+                          <td>
+                            {n.reports?.length > 0 ? (
+                              <span style={{ fontSize: '0.78rem', background: '#fee2e2', color: '#b91c1c', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
+                                <Flag size={12} /> {n.reports.length} Reports
+                              </span>
+                            ) : (
+                              <small style={{ color: '#94a3b8' }}>Clean</small>
+                            )}
+                          </td>
+                          <td style={{ textAlign: 'right' }}>
+                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                              {!n.isFacultyVerified && (
+                                <button
+                                  type="button"
+                                  className="admin-table-action-btn"
+                                  style={{ background: '#dcfce7', color: '#15803d', padding: '4px 8px', borderRadius: '6px', border: '1px solid #86efac' }}
+                                  onClick={() => handleVerifyNote(n.id)}
+                                >
+                                  <ShieldCheck size={14} /> Verify Note
+                                </button>
+                              )}
+                              {n.status !== 'HIDDEN' && (
+                                <button
+                                  type="button"
+                                  className="admin-table-action-btn"
+                                  style={{ background: '#fee2e2', color: '#b91c1c', padding: '4px 8px', borderRadius: '6px', border: '1px solid #fca5a5' }}
+                                  onClick={() => handleHideNote(n.id)}
+                                >
+                                  <Trash2 size={14} /> Hide Note
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
