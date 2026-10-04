@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import './HostelPortal.css';
 import '../components/AdminPortal.css';
+import { downloadHostelCensusPdf } from '../utils/pdfGenerator';
 import {
   initialHostels,
   initialHostelRooms,
@@ -27,6 +28,7 @@ import {
   initialHostelVisitors,
   generateAllStudents
 } from '../data/collegeData.js';
+import { api } from '../services/api.js';
 
 export default function HostelPortal({ account, onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -41,7 +43,7 @@ export default function HostelPortal({ account, onLogout }) {
   const [visitorForm, setVisitorForm] = useState({
     visitorName: '',
     relation: 'Father',
-    studentName: 'Ananya Das',
+    studentName: 'Rakesh Das',
     rollNumber: '01',
     inTime: '05:00 PM',
     purpose: 'Academic visit'
@@ -53,7 +55,7 @@ export default function HostelPortal({ account, onLogout }) {
     setTimeout(() => setToastMessage(''), 3500);
   };
 
-  const handleUpdateComplaintStatus = (id, newStatus) => {
+  const handleUpdateComplaintStatus = async (id, newStatus) => {
     setComplaints(prev => prev.map(c => {
       if (c.id === id) {
         return {
@@ -65,9 +67,14 @@ export default function HostelPortal({ account, onLogout }) {
       return c;
     }));
     showToast(`Complaint ${id} status updated to ${newStatus}`);
+    try {
+      await api.updateComplaintStatus(id, newStatus);
+    } catch (err) {
+      console.warn('Backend complaint status sync failed:', err.message);
+    }
   };
 
-  const handleAddVisitor = (e) => {
+  const handleAddVisitor = async (e) => {
     e.preventDefault();
     const newVisitor = {
       id: `VIS-${Math.floor(500 + Math.random() * 500)}`,
@@ -83,6 +90,11 @@ export default function HostelPortal({ account, onLogout }) {
     setVisitors(prev => [newVisitor, ...prev]);
     setIsVisitorModalOpen(false);
     showToast(`Visitor pass issued for ${newVisitor.visitorName}!`);
+    try {
+      await api.issueVisitorPass(visitorForm);
+    } catch (err) {
+      console.warn('Backend visitor pass sync failed:', err.message);
+    }
   };
 
   const totalBeds = hostels.reduce((acc, h) => acc + h.totalBeds, 0);
@@ -392,7 +404,7 @@ export default function HostelPortal({ account, onLogout }) {
                           </span>
                         </td>
                         <td style={{ fontSize: '0.8rem' }}>
-                          {rm.roomNumber === '204' ? 'Ananya Das (B1), Priya Patra (B2), Sneha Mohanty (B3)' : 'Resident students enrolled'}
+                          {rm.roomNumber === '204' ? 'Rakesh Das (B1), Priya Patra (B2), Sneha Mohanty (B3)' : 'Resident students enrolled'}
                         </td>
                         <td style={{ textAlign: 'right' }}>
                           <button
@@ -549,7 +561,10 @@ export default function HostelPortal({ account, onLogout }) {
                   <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0.5rem 0 1rem 0' }}>
                     Bed-by-bed resident list across all 3 residences with emergency contact details.
                   </p>
-                  <button className="admin-action-btn-primary" onClick={() => showToast('Generated Hostel Occupancy Census PDF.')}>
+                  <button className="admin-action-btn-primary" onClick={() => {
+                    downloadHostelCensusPdf(hostels);
+                    showToast('Generated and downloaded Hostel Occupancy Census PDF.');
+                  }}>
                     <Download size={15} /> Download PDF Census
                   </button>
                 </div>

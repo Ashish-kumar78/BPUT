@@ -83,9 +83,9 @@ export default function MarksManagementModule({ initialRole = 'teacher', current
     return ASSESSMENT_CONFIG.find((a) => a.key === selectedAssessmentKey) || ASSESSMENT_CONFIG[0]
   }, [selectedAssessmentKey])
 
-  // Current active student for Student View (defaults to Ananya Das)
+  // Current active student for Student View (defaults to Rakesh Das)
   const currentStudent = useMemo(() => {
-    return students.find((s) => s.id === currentStudentId) || students[3] // Ananya Das is index 3
+    return students.find((s) => s.id === currentStudentId) || students[3] // Rakesh Das is index 3
   }, [students, currentStudentId])
 
   // Compute Class Overview Stats (Requirement Section 1)

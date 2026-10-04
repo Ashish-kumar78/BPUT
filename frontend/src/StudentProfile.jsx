@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   ArrowLeft,
   Award,
@@ -30,6 +30,7 @@ import FeesPage from './pages/FeesPage.jsx'
 import BiometricPage from './pages/BiometricPage.jsx'
 import CanteenPage from './pages/CanteenPage.jsx'
 import HealthPage from './pages/HealthPage.jsx'
+import UniversityMarksView from './components/UniversityMarksView.jsx'
 
 const profileTabs = [
   { label: 'Personal', icon: UserRound },
@@ -43,9 +44,9 @@ const profileTabs = [
   { label: 'ID Card', icon: IdCard },
 ]
 
-function StudentProfile({ account, onBack, initialTab }) {
+function StudentProfile({ account, onBack, initialTab, initialQuickView }) {
   const [activeTab, setActiveTab] = useState(initialTab || 'Personal')
-  const [activeQuickView, setActiveQuickView] = useState('')
+  const [activeQuickView, setActiveQuickView] = useState(initialQuickView || '')
   const [message, setMessage] = useState('')
   const firstName = account.name.split(' ')[0]
   const lastName = account.name.split(' ').slice(1).join(' ')
@@ -114,6 +115,14 @@ function StudentProfile({ account, onBack, initialTab }) {
     setMessage('')
   }
 
+  const studentPhoto = useMemo(() => {
+    if (account?.photo) return account.photo
+    if (/Aarav|Rohan|Vikram|Siddharth|Rahul|Amit|Rajesh|Pradeep|Debasish|Bishnu|Manoj/i.test(account?.name || '')) {
+      return '/passport_photo_male.svg'
+    }
+    return '/passport_photo.svg'
+  }, [account])
+
   return (
     <section className="student-profile-page sp-modern" id="student-profile">
       <div className="profile-breadcrumb">
@@ -128,7 +137,9 @@ function StudentProfile({ account, onBack, initialTab }) {
       </div>
 
       <section className="profile-overview-strip" aria-label="Student identity summary">
-        <span className="profile-photo">{account.name.split(' ').map((part) => part[0]).slice(0, 2).join('')}</span>
+        <div className="profile-photo" style={{ padding: 0, overflow: 'hidden', border: '2px solid #ffffff' }}>
+          <img src={studentPhoto} alt={account.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </div>
         <div className="profile-overview-copy">
           <span className="profile-overview-label">STUDENT RECORD · ACTIVE</span>
           <h2>{account.name}</h2>
@@ -198,9 +209,26 @@ function StudentProfile({ account, onBack, initialTab }) {
 
             return (
               <section className={`profile-detail-panel ${isEmbeddedPage ? 'has-embedded-page' : ''}`} role="tabpanel" aria-label={`${activeTab} details`}>
-                {!isEmbeddedPage && <h2><ShieldCheck size={15} />{panelTitle}</h2>}
+                {!isEmbeddedPage && activeQuickView !== 'University Marks' && <h2><ShieldCheck size={15} />{panelTitle}</h2>}
                 {activeQuickView ? (
-                  <QuickRecordDetails view={activeQuickView} onBack={() => setActiveQuickView('')} />
+                  activeQuickView === 'College Marks' ? (
+                    <div className="profile-embedded-marks-wrap">
+                      <div className="profile-marks-header-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', paddingBottom: '12px', borderBottom: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '10px' }}>
+                        <div>
+                          <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#0f172a', fontWeight: 800 }}>College Internal Marks &amp; Assessment Management</h3>
+                          <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#64748b' }}>Complete continuous internal evaluation grade book, quiz, midterm, and practical performance breakdown.</p>
+                        </div>
+                        <button className="profile-return" type="button" onClick={() => setActiveQuickView('')}>
+                          <ArrowLeft size={13} /> Back to profile
+                        </button>
+                      </div>
+                      <MarksPage initialRole="student" />
+                    </div>
+                  ) : activeQuickView === 'University Marks' ? (
+                    <UniversityMarksView onBack={() => setActiveQuickView('')} account={account} />
+                  ) : (
+                    <QuickRecordDetails view={activeQuickView} onBack={() => setActiveQuickView('')} />
+                  )
                 ) : (
                   <>
                     {message && <p className="profile-status-message" role="status">{message}</p>}
@@ -233,7 +261,9 @@ function StudentProfile({ account, onBack, initialTab }) {
               <div className="profile-id-card">
                 <span className="profile-id-mark">G</span>
                 <span className="profile-id-copy"><strong>GIFT AUTONOMOUS</strong><small>BHUBANESWAR · STUDENT ID</small></span>
-                <span className="profile-id-avatar">{account.name.split(' ').map((part) => part[0]).slice(0, 2).join('')}</span>
+                <span className="profile-id-avatar" style={{ padding: 0, overflow: 'hidden' }}>
+                  <img src={studentPhoto} alt={account.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </span>
                 <strong className="profile-id-name">{account.name}</strong>
                 <span>Registration No. {account.registrationNumber}</span>
                 <span>B.Tech · CSE · 2023–2027</span>

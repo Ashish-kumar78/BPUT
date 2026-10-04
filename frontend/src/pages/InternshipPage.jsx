@@ -225,9 +225,9 @@ export default function InternshipPage() {
           </div>
           <div className="document-upload-list">
             {[
-              { label: 'Resume / CV', uploaded: true, filename: 'ananya_das_resume_v3.pdf', date: '28 Sep 2026' },
+              { label: 'Resume / CV', uploaded: true, filename: 'rakesh_das_resume_v3.pdf', date: '28 Sep 2026' },
               { label: 'Cover Letter Template', uploaded: false, filename: null },
-              { label: 'GitHub Profile Link', uploaded: true, filename: 'github.com/ananya-das', date: '15 Aug 2026' },
+              { label: 'GitHub Profile Link', uploaded: true, filename: 'github.com/rakesh-das', date: '15 Aug 2026' },
               { label: 'LinkedIn Profile Link', uploaded: false, filename: null },
               { label: 'Certificates / Achievements', uploaded: false, filename: null },
             ].map((doc, i) => (

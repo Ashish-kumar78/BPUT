@@ -9,6 +9,7 @@ import {
   GraduationCap,
   Star,
 } from 'lucide-react'
+import { downloadSyllabusPdf } from '../utils/pdfGenerator'
 import './AcademicsPage.css'
 
 const semesters = [
@@ -135,7 +136,7 @@ export default function AcademicsPage() {
                             {sem.current && (
                               <td>
                                 {sub.syllabus
-                                  ? <button className="syllabus-link"><Download size={12} />PDF</button>
+                                  ? <button className="syllabus-link" onClick={() => downloadSyllabusPdf(sub)}><Download size={12} />PDF</button>
                                   : <span className="no-syllabus">—</span>
                                 }
                               </td>
@@ -233,7 +234,9 @@ export default function AcademicsPage() {
                 <strong>{item.name}</strong>
                 <small>{item.code} · {item.size}</small>
               </div>
-              <button className="syllabus-download-btn"><Download size={14} />Download</button>
+              <button className="syllabus-download-btn" onClick={() => downloadSyllabusPdf(item)}>
+                <Download size={14} />Download
+              </button>
             </div>
           ))}
         </div>

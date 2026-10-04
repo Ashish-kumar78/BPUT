@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Home,
   Bed,
@@ -10,20 +10,54 @@ import {
   Phone,
   Plus,
   Send,
-  X
+  X,
+  Upload,
+  Image,
+  FileText,
+  Trash2
 } from 'lucide-react';
 import './StudentHostelPage.css';
 import { initialStudentHostelDetail, initialHostelComplaints } from '../data/collegeData.js';
 
 export default function StudentHostelPage() {
   const [hostelDetail] = useState(initialStudentHostelDetail);
-  const [complaints, setComplaints] = useState(initialHostelComplaints.filter(c => c.rollNumber === '01'));
+  const [complaints, setComplaints] = useState(
+    initialHostelComplaints.filter(c => c.rollNumber === '01').map(c => ({
+      ...c,
+      description: c.resolutionNotes || '',
+      imageUrl: null,
+    }))
+  );
   const [isLodgeModalOpen, setIsLodgeModalOpen] = useState(false);
   const [complaintForm, setComplaintForm] = useState({
     category: 'Electrical',
     title: '',
-    priority: 'Medium'
+    description: '',
+    priority: 'Medium',
+    imageFile: null,
+    imagePreview: null,
   });
+  const [expandedComplaint, setExpandedComplaint] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setComplaintForm(prev => ({
+        ...prev,
+        imageFile: file,
+        imagePreview: reader.result,
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setComplaintForm(prev => ({ ...prev, imageFile: null, imagePreview: null }));
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   const handleLodgeComplaint = (e) => {
     e.preventDefault();
@@ -31,30 +65,35 @@ export default function StudentHostelPage() {
 
     const newTicket = {
       id: `CMP-${Math.floor(250 + Math.random() * 250)}`,
-      studentName: 'Ananya Das',
+      studentName: 'Rakesh Das',
       rollNumber: '01',
       hostel: hostelDetail.hostelName,
       roomNumber: hostelDetail.roomNumber,
       category: complaintForm.category,
       title: complaintForm.title,
+      description: complaintForm.description,
       priority: complaintForm.priority,
       status: 'Pending',
-      filedDate: 'Today, Just now',
-      resolutionNotes: 'Assigned to resident warden for contractor scheduling.'
+      filedDate: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+      resolutionNotes: 'Assigned to resident warden for contractor scheduling.',
+      imageUrl: complaintForm.imagePreview || null,
     };
 
     setComplaints(prev => [newTicket, ...prev]);
     setIsLodgeModalOpen(false);
-    setComplaintForm({ category: 'Electrical', title: '', priority: 'Medium' });
-    alert('Hostel maintenance ticket lodged successfully! The warden has been notified.');
+    setComplaintForm({ category: 'Electrical', title: '', description: '', priority: 'Medium', imageFile: null, imagePreview: null });
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  const statusColor = (status) =>
+    status === 'Resolved' ? 'approved' : status === 'In Progress' ? 'pending' : 'rejected';
 
   return (
     <div className="student-hostel-page">
       {/* Header */}
       <div className="student-hostel-header">
         <div>
-          <h1>My Hostel Residence & Accommodation</h1>
+          <h1>My Hostel Residence &amp; Accommodation</h1>
           <p>Room allocation, roommates, hostel guidelines, and 24/7 maintenance desk</p>
         </div>
         <button
@@ -136,7 +175,7 @@ export default function StudentHostelPage() {
 
         {/* Hostel Rules */}
         <div className="hostel-info-card" style={{ gap: '1rem' }}>
-          <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a' }}>Hostel Regulations & Code of Conduct</h3>
+          <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a' }}>Hostel Regulations &amp; Code of Conduct</h3>
           <ul style={{ margin: 0, paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', color: '#475569' }}>
             {hostelDetail.rules.map((rule, idx) => (
               <li key={idx}>{rule}</li>
@@ -149,29 +188,68 @@ export default function StudentHostelPage() {
       <div className="hostel-info-card" style={{ gap: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a' }}>My Maintenance Complaints</h3>
-          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{complaints.length} tickets recorded</span>
+          <span style={{ fontSize: '0.8rem', color: '#64748b', background: '#f1f5f9', padding: '3px 10px', borderRadius: '20px', fontWeight: 600 }}>
+            {complaints.length} ticket{complaints.length !== 1 ? 's' : ''} recorded
+          </span>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           {complaints.map(c => (
-            <div key={c.id} className="complaint-item">
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div key={c.id} className="complaint-card-enhanced">
+              {/* Top Row */}
+              <div className="complaint-card-top">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <strong style={{ fontSize: '0.95rem', color: '#0f172a' }}>{c.title}</strong>
                   <span className={`admin-badge ${c.priority === 'High' ? 'rejected' : 'pending'}`}>{c.priority}</span>
                   <span className="admin-badge active">{c.category}</span>
                 </div>
-                <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.25rem' }}>
-                  Ticket: <code>{c.id}</code> · Filed: {c.filedDate} · {c.resolutionNotes}
-                </div>
+                <span className={`admin-badge ${statusColor(c.status)}`} style={{ flexShrink: 0 }}>
+                  {c.status}
+                </span>
               </div>
-              <span className={`admin-badge ${c.status === 'Resolved' ? 'approved' : c.status === 'In Progress' ? 'pending' : 'rejected'}`}>
-                {c.status}
-              </span>
+
+              {/* Meta */}
+              <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                Ticket: <code style={{ background: '#f1f5f9', padding: '1px 5px', borderRadius: '4px' }}>{c.id}</code>
+                &nbsp;·&nbsp;Filed: {c.filedDate}
+                &nbsp;·&nbsp;Room {c.roomNumber}
+              </div>
+
+              {/* Description */}
+              {c.description && (
+                <div className="complaint-description-block">
+                  <FileText size={13} style={{ color: '#7c3aed', flexShrink: 0, marginTop: '1px' }} />
+                  <span style={{ fontSize: '0.83rem', color: '#334155' }}>{c.description}</span>
+                </div>
+              )}
+
+              {/* Image thumbnail */}
+              {c.imageUrl && (
+                <div className="complaint-image-wrap">
+                  <img
+                    src={c.imageUrl}
+                    alt="Complaint attachment"
+                    className="complaint-thumb"
+                    onClick={() => setExpandedComplaint(c)}
+                    title="Click to view full image"
+                  />
+                  <span style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
+                    <Image size={12} style={{ verticalAlign: 'middle', marginRight: '3px' }} />
+                    Photo attached
+                  </span>
+                </div>
+              )}
+
+              {/* Resolution note */}
+              <div style={{ fontSize: '0.78rem', color: '#94a3b8', fontStyle: 'italic', borderTop: '1px solid #f1f5f9', paddingTop: '6px' }}>
+                ℹ️ {c.resolutionNotes}
+              </div>
             </div>
           ))}
+
           {complaints.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '1.5rem', color: '#64748b', fontSize: '0.85rem' }}>
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8', fontSize: '0.85rem' }}>
+              <AlertCircle size={28} style={{ opacity: 0.4, marginBottom: '0.5rem', display: 'block', margin: '0 auto 0.5rem' }} />
               No active maintenance complaints recorded.
             </div>
           )}
@@ -180,8 +258,8 @@ export default function StudentHostelPage() {
 
       {/* MODAL: LODGE COMPLAINT */}
       {isLodgeModalOpen && (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal-card">
+        <div className="admin-modal-backdrop" onClick={() => setIsLodgeModalOpen(false)}>
+          <div className="admin-modal-card complaint-modal" onClick={e => e.stopPropagation()}>
             <div className="admin-modal-header">
               <h3>Lodge Hostel Maintenance Request</h3>
               <button className="admin-table-action-btn" onClick={() => setIsLodgeModalOpen(false)}>
@@ -189,7 +267,9 @@ export default function StudentHostelPage() {
               </button>
             </div>
             <form onSubmit={handleLodgeComplaint}>
-              <div className="admin-modal-body">
+              <div className="admin-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+                {/* Category + Priority row */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="admin-form-group">
                     <label>Category</label>
@@ -202,7 +282,7 @@ export default function StudentHostelPage() {
                       <option value="Plumbing">Plumbing (Tap, Shower, Geyser)</option>
                       <option value="Internet / Wi-Fi">Internet / Wi-Fi</option>
                       <option value="Carpentry">Carpentry (Bed, Table, Almirah)</option>
-                      <option value="Housekeeping">Housekeeping & Cleaning</option>
+                      <option value="Housekeeping">Housekeeping &amp; Cleaning</option>
                     </select>
                   </div>
                   <div className="admin-form-group">
@@ -219,28 +299,114 @@ export default function StudentHostelPage() {
                   </div>
                 </div>
 
+                {/* Issue Title */}
                 <div className="admin-form-group">
-                  <label>Describe the Issue</label>
-                  <textarea
-                    rows={4}
+                  <label>Issue Title <span style={{ color: '#e11d48' }}>*</span></label>
+                  <input
+                    type="text"
                     className="admin-form-input"
                     value={complaintForm.title}
                     onChange={e => setComplaintForm({ ...complaintForm, title: e.target.value })}
-                    placeholder="e.g. The ceiling fan regulator in Room 204 is sparking when switched to speed 5."
+                    placeholder="e.g. Ceiling fan speed regulator broken"
                     required
                   />
-                  <small style={{ color: '#64748b' }}>Warden and campus facilities team will inspect within 24 hours.</small>
+                </div>
+
+                {/* Detailed Description */}
+                <div className="admin-form-group">
+                  <label>Describe What Happened <span style={{ color: '#e11d48' }}>*</span></label>
+                  <textarea
+                    rows={4}
+                    className="admin-form-input"
+                    value={complaintForm.description}
+                    onChange={e => setComplaintForm({ ...complaintForm, description: e.target.value })}
+                    placeholder="Explain the problem in detail — when it started, how it affects daily routine, and what you observed (e.g. sparking, water leakage, no signal, etc.)"
+                    required
+                    style={{ resize: 'vertical', minHeight: '90px' }}
+                  />
+                  <small style={{ color: '#64748b' }}>
+                    The more detail you provide, the faster our maintenance team can resolve it.
+                  </small>
+                </div>
+
+                {/* Image Upload */}
+                <div className="admin-form-group">
+                  <label>Attach Photo (Optional)</label>
+                  {!complaintForm.imagePreview ? (
+                    <div
+                      className="complaint-upload-zone"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload size={20} style={{ color: '#7c3aed' }} />
+                      <span style={{ fontWeight: 600, color: '#7c3aed', fontSize: '0.9rem' }}>Click to upload image</span>
+                      <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>JPG, PNG, WEBP up to 5MB</span>
+                    </div>
+                  ) : (
+                    <div className="complaint-preview-wrap">
+                      <img src={complaintForm.imagePreview} alt="Preview" className="complaint-preview-img" />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                        <span style={{ fontSize: '0.8rem', color: '#059669', fontWeight: 600 }}>
+                          ✓ {complaintForm.imageFile?.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#e11d48', display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.8rem' }}
+                        >
+                          <Trash2 size={13} /> Remove
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleImageChange}
+                  />
+                </div>
+
+                <div style={{ fontSize: '0.78rem', color: '#64748b', background: '#f8fafc', borderRadius: '8px', padding: '0.6rem 0.75rem', borderLeft: '3px solid #7c3aed' }}>
+                  🔔 Warden and campus facilities team will inspect within 24 hours of submission.
                 </div>
               </div>
+
               <div className="admin-modal-footer">
                 <button type="button" className="admin-action-btn-secondary" onClick={() => setIsLodgeModalOpen(false)}>
                   Cancel
                 </button>
                 <button type="submit" className="admin-action-btn-primary" style={{ background: '#7c3aed' }}>
-                  Submit Maintenance Request
+                  <Send size={14} /> Submit Maintenance Request
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Full Image Viewer Modal */}
+      {expandedComplaint && expandedComplaint.imageUrl && (
+        <div
+          className="admin-modal-backdrop"
+          onClick={() => setExpandedComplaint(null)}
+          style={{ zIndex: 2000 }}
+        >
+          <div
+            style={{ background: '#fff', borderRadius: '16px', overflow: 'hidden', maxWidth: '90vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0' }}>
+              <span style={{ fontWeight: 700, color: '#0f172a' }}>{expandedComplaint.title}</span>
+              <button className="admin-table-action-btn" onClick={() => setExpandedComplaint(null)}>
+                <X size={18} />
+              </button>
+            </div>
+            <img
+              src={expandedComplaint.imageUrl}
+              alt="Complaint full view"
+              style={{ maxWidth: '80vw', maxHeight: '75vh', objectFit: 'contain', display: 'block', margin: '1rem auto' }}
+            />
           </div>
         </div>
       )}

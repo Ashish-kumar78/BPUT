@@ -20,8 +20,10 @@ import {
 } from 'lucide-react';
 import './HodPortal.css';
 import '../components/AdminPortal.css';
+import { downloadDepartmentGazettePdf } from '../utils/pdfGenerator';
 import { initialApprovalQueue, initialFaculty, initialSubjects, generateAllStudents } from '../data/collegeData.js';
 import MarksManagementModule from '../marks/MarksManagementModule.jsx';
+import { api } from '../services/api.js';
 
 export default function HodPortal({ account, onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -42,7 +44,7 @@ export default function HodPortal({ account, onLogout }) {
   };
 
   // Actions
-  const handleApprove = (id, subject) => {
+  const handleApprove = async (id, subject) => {
     setApprovalQueue(prev => prev.map(item => {
       if (item.id === id) {
         return {
@@ -55,6 +57,11 @@ export default function HodPortal({ account, onLogout }) {
       return item;
     }));
     showToast(`Marks for ${subject} officially APPROVED and published!`);
+    try {
+      await api.approveMarks(id);
+    } catch (e) {
+      console.warn('Backend marks approval sync failed:', e.message);
+    }
   };
 
   const handleOpenReject = (item) => {
@@ -62,11 +69,12 @@ export default function HodPortal({ account, onLogout }) {
     setRejectionReason('Quiz 4 marks are missing for 8 students. Please complete and resubmit.');
   };
 
-  const handleConfirmReject = (e) => {
+  const handleConfirmReject = async (e) => {
     e.preventDefault();
     if (!rejectionReason.trim()) return;
+    const currentItem = rejectingItem;
     setApprovalQueue(prev => prev.map(item => {
-      if (item.id === rejectingItem.id) {
+      if (item.id === currentItem.id) {
         return {
           ...item,
           status: 'Rejected',
@@ -76,11 +84,16 @@ export default function HodPortal({ account, onLogout }) {
       }
       return item;
     }));
-    showToast(`Marks for ${rejectingItem.subject} returned to faculty for revision.`);
+    showToast(`Marks for ${currentItem.subject} returned to faculty for revision.`);
     setRejectingItem(null);
+    try {
+      await api.rejectMarks(currentItem.id, rejectionReason);
+    } catch (err) {
+      console.warn('Backend marks rejection sync failed:', err.message);
+    }
   };
 
-  const handleUnlockMarks = (id, subject) => {
+  const handleUnlockMarks = async (id, subject) => {
     setApprovalQueue(prev => prev.map(item => {
       if (item.id === id) {
         return {
@@ -92,6 +105,11 @@ export default function HodPortal({ account, onLogout }) {
       return item;
     }));
     showToast(`Marks for ${subject} have been unlocked. Faculty can now edit.`);
+    try {
+      await api.unlockMarks(id);
+    } catch (e) {
+      console.warn('Backend marks unlock sync failed:', e.message);
+    }
   };
 
   const pendingCount = approvalQueue.filter(q => q.status === 'Pending').length;
@@ -522,7 +540,10 @@ export default function HodPortal({ account, onLogout }) {
                   <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0.5rem 0 1rem 0' }}>
                     Complete grade book for 6 subjects across 91 students with component breakdowns.
                   </p>
-                  <button className="admin-action-btn-primary" onClick={() => showToast('Generated CSE Department Internal Marks PDF Report.')}>
+                  <button className="admin-action-btn-primary" onClick={() => {
+                    downloadDepartmentGazettePdf('CSE Department Internal Marks Comprehensive Gazette');
+                    showToast('Generated & downloaded CSE Department Internal Marks PDF Report.');
+                  }}>
                     <Download size={15} /> Download Gazette PDF
                   </button>
                 </div>

@@ -59,6 +59,7 @@ import IDCardPage from './pages/IDCardPage.jsx'
 import BiometricPage from './pages/BiometricPage.jsx'
 import CanteenPage from './pages/CanteenPage.jsx'
 import StudentHostelPage from './pages/StudentHostelPage.jsx'
+import { api } from './services/api.js'
 
 const profilePageTabMap = {
   attendance: 'Attendance Dashboard',
@@ -68,11 +69,7 @@ const profilePageTabMap = {
 
 const navigation = [
   { label: 'Dashboard', icon: Home, page: 'dashboard' },
-  { label: 'Marks Management', icon: BarChart2, page: 'marks' },
   { label: 'Hostel Residence', icon: Building2, page: 'hostel' },
-  { label: 'Mess & Canteen', icon: Utensils, page: 'canteen' },
-  { label: 'Fees & Accounts', icon: CreditCard, page: 'fees' },
-  { label: 'Attendance', icon: CheckCircle2, page: 'attendance' },
   { label: 'Library', icon: LibraryBig, page: 'library' },
   { label: 'Academics', icon: BookOpen, page: 'academics' },
   { label: 'Timetable', icon: CalendarDays, page: 'timetable' },
@@ -95,29 +92,95 @@ const archivedNotices = [
   { tag: 'CAMPUS', title: 'Library hours during break', detail: 'The central library will operate on revised hours during the term break.', date: '28 Aug 2026' },
 ]
 
+const initialStudentNotifications = [
+  {
+    id: 'notif-1',
+    tag: 'SCHOLARSHIP',
+    tagClass: 'notif-tag-scholarship',
+    title: 'PRERANA Post-Matric Scholarship Sanctioned',
+    message: 'Disbursement sanctioned by SSD Department. Verification complete and approved.',
+    time: '10 mins ago',
+    unread: true,
+  },
+  {
+    id: 'notif-2',
+    tag: 'EXAMINATION',
+    tagClass: 'notif-tag-exam',
+    title: 'Internal Assessment Timetable Released',
+    message: 'Internal examination schedule commences from Oct 14, 2026. Review timetable page.',
+    time: '2 hours ago',
+    unread: true,
+  },
+  {
+    id: 'notif-3',
+    tag: 'LIBRARY',
+    tagClass: 'notif-tag-library',
+    title: 'Book Return Reminder',
+    message: '"Introduction to Algorithms (CLRS)" due in 3 days. Return to central desk to avoid fine.',
+    time: 'Yesterday',
+    unread: false,
+  },
+  {
+    id: 'notif-4',
+    tag: 'ACCOUNTS',
+    tagClass: 'notif-tag-accounts',
+    title: 'Semester VII Tuition Fee Receipt Generated',
+    message: 'Official payment receipt #RCP-2026-8821 verified and available in Fees & Accounts.',
+    time: '3 days ago',
+    unread: false,
+  },
+]
+
+
 const holidays = [
-  ['14-10-2026', 'Durga Puja Saptami'],
-  ['15-10-2026', 'Durga Puja Ashtami'],
-  ['16-10-2026', 'Durga Puja Navami'],
-  ['20-10-2026', 'Diwali'],
+  ['14-01-2026', 'Makar Sankranti / Pongal'],
+  ['23-01-2026', 'Netaji Jayanti / Veer Surendra Sai Jayanti'],
+  ['26-01-2026', 'Republic Day'],
+  ['15-02-2026', 'Maha Shivratri'],
+  ['04-03-2026', 'Dola Purnima / Holi Eve'],
+  ['05-03-2026', 'Holi Festival'],
+  ['20-03-2026', 'Id-ul-Fitr (Ramzan Id)'],
+  ['27-03-2026', 'Sri Ram Navami'],
+  ['01-04-2026', 'Utkal Divas (Odisha Day)'],
+  ['03-04-2026', 'Good Friday'],
+  ['14-04-2026', 'Dr. B.R. Ambedkar Jayanti / Maha Vishuba Sankranti'],
+  ['01-05-2026', 'May Day (International Workers\' Day)'],
+  ['27-05-2026', 'Bakrid / Eid-ul-Adha'],
+  ['16-07-2026', 'Rath Yatra (Car Festival)'],
+  ['24-07-2026', 'Bahuda Yatra'],
+  ['26-07-2026', 'Muharram'],
+  ['15-08-2026', 'Independence Day'],
+  ['04-09-2026', 'Sri Krishna Janmashtami'],
+  ['14-09-2026', 'Ganesh Chaturthi / Vinayaka Puja'],
+  ['16-09-2026', 'Nuakhai (Western Odisha Festival)'],
+  ['02-10-2026', 'Mahatma Gandhi Jayanti'],
+  ['09-10-2026', 'Mahalaya'],
+  ['14-10-2026', 'Durga Puja (Maha Saptami)'],
+  ['15-10-2026', 'Durga Puja (Maha Ashtami)'],
+  ['16-10-2026', 'Durga Puja (Maha Navami)'],
+  ['17-10-2026', 'Vijaya Dashami (Dussehra)'],
+  ['20-10-2026', 'Diwali / Kali Puja'],
+  ['24-11-2026', 'Guru Nanak Jayanti / Rahas Purnima'],
   ['25-12-2026', 'Christmas Day'],
-  ['26-01-2027', 'Republic Day'],
-  ['15-08-2027', 'Independence Day'],
 ]
 
 function StudentPortal({ account, onLogout }) {
   const [profileTab, setProfileTab] = useState('')
+  const [profileQuickView, setProfileQuickView] = useState('')
 
   const getInitial = () => {
     const hash = typeof window !== 'undefined' ? window.location.hash.replace('#', '') : '';
     if (hash && hash !== 'portal-top') {
+      if (hash === 'marks' || hash === 'college-marks') {
+        return { page: 'profile', link: 'View Profile', tab: '', quickView: 'College Marks' };
+      }
       if (profilePageTabMap[hash]) {
-        return { page: 'profile', link: 'View Profile', tab: profilePageTabMap[hash] };
+        return { page: 'profile', link: 'View Profile', tab: profilePageTabMap[hash], quickView: '' };
       }
       const match = navigation.find((n) => n.page === hash);
-      if (match) return { page: hash, link: match.label, tab: '' };
+      if (match) return { page: hash, link: match.label, tab: '', quickView: '' };
     }
-    return { page: 'dashboard', link: 'Dashboard', tab: '' };
+    return { page: 'dashboard', link: 'Dashboard', tab: '', quickView: '' };
   };
   const init = getInitial();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -131,12 +194,21 @@ function StudentPortal({ account, onLogout }) {
         setActivePage('dashboard');
         setActiveLink('Dashboard');
         setProfileTab('');
+        setProfileQuickView('');
+        return;
+      }
+      if (hash === 'marks' || hash === 'college-marks') {
+        setActivePage('profile');
+        setActiveLink('View Profile');
+        setProfileTab('');
+        setProfileQuickView('College Marks');
         return;
       }
       if (profilePageTabMap[hash]) {
         setActivePage('profile');
         setActiveLink('View Profile');
         setProfileTab(profilePageTabMap[hash]);
+        setProfileQuickView('');
         return;
       }
       const match = navigation.find((n) => n.page === hash);
@@ -144,6 +216,7 @@ function StudentPortal({ account, onLogout }) {
         setActivePage(match.page);
         setActiveLink(match.label);
         setProfileTab('');
+        setProfileQuickView('');
       }
     };
     window.addEventListener('hashchange', handleHash);
@@ -157,12 +230,88 @@ function StudentPortal({ account, onLogout }) {
     const now = new Date()
     return new Date(now.getFullYear(), now.getMonth(), 1)
   })
-  const [transferConfirmed, setTransferConfirmed] = useState(false)
-  const [campus, setCampus] = useState('')
-  const [transferCity, setTransferCity] = useState('')
-  const [transferStatus, setTransferStatus] = useState('')
+  const [holidayView, setHolidayView] = useState('all')
   const [showNotifications, setShowNotifications] = useState(false)
+  const [notifications, setNotifications] = useState(initialStudentNotifications)
+  const unreadNotifCount = notifications.filter((n) => n.unread).length
+
+  const handleMarkAllRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })))
+  }
+
+  const handleToggleNotif = (id) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, unread: !n.unread } : n)))
+  }
+
+  const studentPhoto = useMemo(() => {
+    if (account?.photo) return account.photo
+    if (/Aarav|Rohan|Vikram|Siddharth|Rahul|Amit|Rajesh|Pradeep|Debasish|Bishnu|Manoj/i.test(account?.name || '')) {
+      return '/passport_photo_male.svg'
+    }
+    return '/passport_photo.svg'
+  }, [account])
+
   const [today] = useState(() => new Date())
+  const [currentTime, setCurrentTime] = useState(() => new Date())
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const timeGreeting = useMemo(() => {
+    const hour = currentTime.getHours()
+    if (hour >= 5 && hour < 12) {
+      return {
+        wish: 'Good morning',
+        emoji: '🌅',
+        period: 'Morning',
+        caption: 'Rise and shine! Have an inspiring, energetic, and productive learning day ahead.',
+        motd: 'Morning lectures commence at 09:15 AM. Check your class timetable for room assignments.',
+        themeClass: 'dash-hero-morning',
+      }
+    }
+    if (hour >= 12 && hour < 17) {
+      return {
+        wish: 'Good afternoon',
+        emoji: '☀️',
+        period: 'Afternoon',
+        caption: 'Keep up the strong momentum in your afternoon lectures, lab practicals, and projects.',
+        motd: 'Central library research wing and computing center access remain open till 08:00 PM.',
+        themeClass: 'dash-hero-afternoon',
+      }
+    }
+    if (hour >= 17 && hour < 22) {
+      return {
+        wish: 'Good evening',
+        emoji: '🌇',
+        period: 'Evening',
+        caption: 'Review today’s coursework, complete your assignments, and enjoy your evening.',
+        motd: 'Scholarship applications for the 2026–27 session are now open.',
+        themeClass: 'dash-hero-evening',
+      }
+    }
+    return {
+      wish: 'Good night',
+      emoji: '🌙',
+      period: 'Night',
+      caption: 'Rest well tonight and recharge your energy for tomorrow’s achievements.',
+      motd: 'Campus quiet hours are in effect. Ensure assignments are submitted and devices charged.',
+      themeClass: 'dash-hero-night',
+    }
+  }, [currentTime])
+
+  const formattedLiveTime = useMemo(() => {
+    return currentTime.toLocaleTimeString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    })
+  }, [currentTime])
+
   const todayLabel = new Intl.DateTimeFormat('en-IN', {
     weekday: 'short', month: 'short', day: '2-digit', year: 'numeric',
   }).format(today)
@@ -185,16 +334,17 @@ function StudentPortal({ account, onLogout }) {
       return { raw, name, date, daysLeft, key: `${y}-${m - 1}-${d}` }
     })
   }, [today])
+  const displayedHolidays = useMemo(() => {
+    if (holidayView === 'upcoming') {
+      return holidayItems.filter((h) => h.daysLeft >= 0)
+    }
+    return holidayItems
+  }, [holidayView, holidayItems])
   const holidayMap = useMemo(() => Object.fromEntries(holidayItems.map((h) => [h.key, h.name])), [holidayItems])
   const nextHoliday = holidayItems.find((h) => h.daysLeft >= 0)
 
   function updateMonth(direction) {
     setCurrentMonth((month) => new Date(month.getFullYear(), month.getMonth() + direction, 1))
-  }
-
-  function submitTransfer(event) {
-    event.preventDefault()
-    setTransferStatus(`Preference saved: ${campus}, ${transferCity.trim()}.`)
   }
 
   return (
@@ -288,31 +438,84 @@ function StudentPortal({ account, onLogout }) {
             </div>
 
             <div className="campus-header-actions">
-              <div className="campus-search-box">
-                <Search size={16} />
-                <input
-                  value={noticeQuery}
-                  onChange={(event) => setNoticeQuery(event.target.value)}
-                  placeholder="Search campus notices..."
-                />
+              <div style={{ position: 'relative' }}>
+                <button
+                  className="campus-icon-btn"
+                  type="button"
+                  aria-label="Notifications"
+                  onClick={() => setShowNotifications((s) => !s)}
+                  title="Campus Notifications"
+                >
+                  <Bell size={18} />
+                  {unreadNotifCount > 0 && <span className="campus-bell-dot" />}
+                </button>
+                {showNotifications && (
+                  <div className="campus-notif-popover" role="dialog" aria-label="Notifications">
+                    <div className="notif-popover-head">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <strong>Notifications</strong>
+                        {unreadNotifCount > 0 && (
+                          <span className="notif-count-badge">{unreadNotifCount} new</span>
+                        )}
+                      </div>
+                      <button
+                        className="notif-close-btn"
+                        type="button"
+                        onClick={() => setShowNotifications(false)}
+                        aria-label="Close notifications"
+                      >
+                        <X size={15} />
+                      </button>
+                    </div>
+
+                    <div className="notif-popover-body">
+                      {notifications.map((notif) => (
+                        <div
+                          key={notif.id}
+                          className={`notif-item ${notif.unread ? 'is-unread' : ''}`}
+                          onClick={() => handleToggleNotif(notif.id)}
+                          role="button"
+                          tabIndex={0}
+                          title={notif.unread ? 'Click to mark as read' : 'Click to mark as unread'}
+                        >
+                          <div className="notif-item-top">
+                            <span className={`notif-tag-badge ${notif.tagClass}`}>{notif.tag}</span>
+                            <span className="notif-time">{notif.time}</span>
+                          </div>
+                          <h4 className="notif-title">{notif.title}</h4>
+                          <p className="notif-message">{notif.message}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="notif-popover-footer">
+                      <button
+                        className="notif-mark-read-btn"
+                        type="button"
+                        onClick={handleMarkAllRead}
+                      >
+                        Mark all as read
+                      </button>
+                      <button
+                        className="notif-view-all-btn"
+                        type="button"
+                        onClick={() => {
+                          setShowNotifications(false)
+                          setActivePage('notices')
+                          setActiveLink('Campus Notices')
+                          window.location.hash = 'notices'
+                        }}
+                      >
+                        View all notices →
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-              <button
-                className="campus-icon-btn"
-                type="button"
-                aria-label="Notifications"
-                onClick={() => setShowNotifications((s) => !s)}
-              >
-                <Bell size={18} />
-                <span className="campus-bell-dot" />
-              </button>
-              {showNotifications && (
-                <div className="campus-notif-popover">
-                  <strong>Notifications</strong>
-                  <span>2 new scholarship and examination updates.</span>
-                </div>
-              )}
               <div className="campus-user-pill">
-                <div className="campus-user-avatar">{initials}</div>
+                <div className="campus-user-passport" title={`${account.name} Passport Photo`}>
+                  <img src={studentPhoto} alt={account.name} className="campus-user-passport-img" />
+                </div>
                 <div className="campus-user-details">
                   <strong>{account.name}</strong>
                   <small>Student • {account.registrationNumber}</small>
@@ -363,124 +566,160 @@ function StudentPortal({ account, onLogout }) {
             <StudentProfile
               account={account}
               initialTab={profileTab || 'Personal'}
+              initialQuickView={profileQuickView || ''}
               onBack={() => {
                 setActivePage('dashboard')
                 setActiveLink('Dashboard')
                 setProfileTab('')
+                setProfileQuickView('')
                 window.location.hash = 'dashboard'
               }}
             />
           ) : (
             <div className="dash">
-          {/* Hero greeting */}
-          <section className="dash-hero" aria-label="Welcome">
+          {/* 3rd Image: Hero greeting that dynamically changes according to time and wishes */}
+          <section className={`dash-hero ${timeGreeting.themeClass}`} aria-label="Welcome">
             <div className="dash-hero-glow" aria-hidden="true" />
             <div className="dash-hero-main">
               <p className="dash-hero-kicker"><Sparkles size={13} /> Student workspace · Semester 5</p>
-              <h2 className="dash-hero-title">Good day, {account.name.split(' ')[0]} 👋</h2>
-              <p className="dash-hero-caption">Your campus activity and records, together in one place.</p>
+              <h2 className="dash-hero-title">{timeGreeting.wish}, {account.name.split(' ')[0]} {timeGreeting.emoji}</h2>
+              <p className="dash-hero-caption">{timeGreeting.caption}</p>
               <div className="dash-motd" role="note" aria-label="Message of the day">
                 <span className="dash-motd-icon"><Megaphone size={14} /></span>
                 <strong>Message of the day</strong>
-                <span>Scholarship applications for the 2026–27 session are now open.</span>
+                <span>{timeGreeting.motd}</span>
               </div>
             </div>
             <div className="dash-hero-meta">
               <span className="dash-chip">Academic year <strong>2026–27</strong></span>
               <time className="dash-date"><CalendarDays size={14} /> {todayLabel}</time>
+              <span className="dash-chip" style={{ background: 'rgba(0,0,0,0.22)' }}>
+                <Clock size={11} /> {formattedLiveTime}
+              </span>
             </div>
           </section>
 
-          {/* Snapshot stats */}
-          <section className="dash-stats" aria-label="Semester snapshot">
-            <article className="dash-stat tone-blue">
-              <span className="dash-stat-icon"><BookOpen size={18} /></span>
-              <div>
-                <span className="dash-stat-label">Enrolled courses</span>
-                <strong className="dash-stat-value">06</strong>
-                <small className="dash-stat-sub">Semester 5 · 22 credits</small>
+          {/* Top Hero Split: 1st Image (Student Profile) on LEFT + 2nd Image (2x2 Stats) on RIGHT (50% each) */}
+          <div className="dash-hero-split">
+            {/* 1st Image: Student Profile Card placed on LEFT SIDE with strict Passport Size Photo */}
+            <aside className="dash-card dash-info dash-info-hero" id="student-information" aria-label="Student account information">
+              <div className="dash-info-cover">
+                <div className="dash-passport-photo-frame" title={`${account.name} Passport Photograph (Official 35mm x 45mm)`}>
+                  <img src={studentPhoto} alt={account.name} className="dash-passport-img" />
+                </div>
+                <div>
+                  <strong>{account.name}</strong>
+                  <small>{account.registrationNumber}</small>
+                </div>
+                <span className="dash-status"><i /> Active</span>
               </div>
-            </article>
-            <article className="dash-stat tone-green">
-              <span className="dash-stat-icon"><CheckCircle2 size={18} /></span>
-              <div>
-                <span className="dash-stat-label">Attendance</span>
-                <strong className="dash-stat-value">92%</strong>
-                <div className="dash-progress" aria-hidden="true"><i style={{ width: '92%' }} /></div>
-                <small className="dash-stat-sub"><Check size={12} /> Above required minimum</small>
-              </div>
-            </article>
-            <article className="dash-stat tone-violet">
-              <span className="dash-stat-icon"><Clock size={18} /></span>
-              <div>
-                <span className="dash-stat-label">Next class</span>
-                <strong className="dash-stat-value">10:30 <em>AM</em></strong>
-                <small className="dash-stat-sub">Data Structures · Room 204</small>
-              </div>
-            </article>
-            <article className="dash-stat tone-amber">
-              <span className="dash-stat-icon"><PartyPopper size={18} /></span>
-              <div>
-                <span className="dash-stat-label">Next holiday</span>
-                <strong className="dash-stat-value">{nextHoliday ? (nextHoliday.daysLeft === 0 ? 'Today' : `${nextHoliday.daysLeft} days`) : '—'}</strong>
-                <small className="dash-stat-sub">{nextHoliday ? nextHoliday.name : 'No upcoming holidays'}</small>
-              </div>
-            </article>
-          </section>
+              <dl className="dash-info-list">
+                <DetailRow label="Registration No." value={account.registrationNumber} />
+                <DetailRow label="Name" value={account.name} />
+                <DetailRow label="Course" value="B.Tech" />
+                <DetailRow label="Batch" value="2023–2027" />
+                <DetailRow label="Branch" value={account.department} />
+                <DetailRow label="Section" value="CSE · Section A" />
+                <DetailRow label="Email ID" value="rakesh.das@student.gift.edu.in" />
+                <DetailRow label="Mobile No." value="+91 98610 23010" />
+              </dl>
+              <button className="dash-btn dash-btn-primary dash-info-btn" type="button" onClick={() => {
+                setActivePage('profile')
+                setActiveLink('Dashboard')
+              }}>View profile <ChevronRight size={15} /></button>
+            </aside>
 
-          {/* Temporary campus preference */}
-          <form className="dash-card dash-transfer" id="transfer-form" onSubmit={submitTransfer}>
-            <div className="dash-transfer-head">
-              <span className="dash-transfer-icon"><MapPin size={18} /></span>
-              <div>
-                <h3>Temporary campus preference</h3>
-                <p><strong>Important:</strong> If you are willing to attend college temporarily from another campus, please update your preferred location using the form below.</p>
-              </div>
-            </div>
-            <label className="dash-check">
-              <input
-                type="checkbox"
-                checked={transferConfirmed}
-                onChange={(event) => setTransferConfirmed(event.target.checked)}
-                required
-              />
-              <span>I hereby declare that I am willing to attend college temporarily from the selected campus.</span>
-            </label>
-            <div className="dash-transfer-fields">
-              <label className="dash-select">
-                <span className="sr-only">Preferred campus</span>
-                <Building2 size={15} aria-hidden="true" />
-                <select value={campus} onChange={(event) => setCampus(event.target.value)} required>
-                  <option value="">Select campus</option>
-                  <option value="GIFT Main Campus">GIFT Main Campus</option>
-                  <option value="GIFT Bhubaneswar City Campus">GIFT Bhubaneswar City Campus</option>
-                </select>
-                <ChevronDown size={14} aria-hidden="true" />
-              </label>
-              <label className="dash-input">
-                <span className="sr-only">Preferred city</span>
-                <MapPin size={15} aria-hidden="true" />
-                <input
-                  id="transfer-city"
-                  value={transferCity}
-                  onChange={(event) => setTransferCity(event.target.value)}
-                  placeholder="Preferred city / location"
-                  required
-                />
-              </label>
-              <button className="dash-btn dash-btn-primary" type="submit">Update preference</button>
-              <button className="dash-btn dash-btn-ghost" type="reset" onClick={() => {
-                setTransferConfirmed(false)
-                setCampus('')
-                setTransferCity('')
-                setTransferStatus('')
-              }}>Reset</button>
-            </div>
-            {transferStatus && <p className="dash-feedback" role="status"><CheckCircle2 size={14} /> {transferStatus}</p>}
-          </form>
+            {/* 2nd Image: 2x2 Stats Grid placed on RIGHT SIDE - Content covering the whole box */}
+            <section className="dash-stats-2x2" aria-label="Semester snapshot">
+              {/* Card 1: Enrolled Courses */}
+              <article className="dash-stat tone-blue">
+                <div className="dash-stat-head">
+                  <div className="dash-stat-head-left">
+                    <span className="dash-stat-icon"><BookOpen size={18} /></span>
+                    <span className="dash-stat-label">Enrolled courses</span>
+                  </div>
+                  <span className="dash-stat-badge tone-blue-badge">Semester 5</span>
+                </div>
+                <div className="dash-stat-body">
+                  <strong className="dash-stat-value">06</strong>
+                  <p className="dash-stat-desc">Semester 5 · 22 total credits</p>
+                </div>
+                <div className="dash-stat-foot">
+                  <span className="dash-stat-pill">4 Core Theory</span>
+                  <span className="dash-stat-pill">2 Practical Labs</span>
+                  <span className="dash-stat-pill tone-green-pill">Registered</span>
+                </div>
+              </article>
 
-          {/* Main grid */}
-          <div className="dash-grid">
+              {/* Card 2: Attendance */}
+              <article className="dash-stat tone-green">
+                <div className="dash-stat-head">
+                  <div className="dash-stat-head-left">
+                    <span className="dash-stat-icon"><CheckCircle2 size={18} /></span>
+                    <span className="dash-stat-label">Attendance</span>
+                  </div>
+                  <span className="dash-stat-badge tone-green-badge">Eligible</span>
+                </div>
+                <div className="dash-stat-body">
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <strong className="dash-stat-value">92%</strong>
+                    <span className="dash-stat-ratio">138 / 150 Lectures</span>
+                  </div>
+                  <div className="dash-progress" aria-hidden="true">
+                    <i style={{ width: '92%' }} />
+                  </div>
+                </div>
+                <div className="dash-stat-foot">
+                  <small className="dash-stat-sub text-green">
+                    <Check size={13} /> 17% above required 75% examination threshold
+                  </small>
+                </div>
+              </article>
+
+              {/* Card 3: Next Class */}
+              <article className="dash-stat tone-violet">
+                <div className="dash-stat-head">
+                  <div className="dash-stat-head-left">
+                    <span className="dash-stat-icon"><Clock size={18} /></span>
+                    <span className="dash-stat-label">Next class</span>
+                  </div>
+                  <span className="dash-stat-badge tone-violet-badge">Starts 10:30 AM</span>
+                </div>
+                <div className="dash-stat-body">
+                  <strong className="dash-stat-value">10:30 <em>AM</em></strong>
+                  <p className="dash-stat-desc">Data Structures &amp; Algorithms</p>
+                </div>
+                <div className="dash-stat-foot">
+                  <span className="dash-stat-sub">
+                    <MapPin size={13} /> Room 204 · Block B (Dr. S. K. Nayak)
+                  </span>
+                </div>
+              </article>
+
+              {/* Card 4: Next Holiday */}
+              <article className="dash-stat tone-amber">
+                <div className="dash-stat-head">
+                  <div className="dash-stat-head-left">
+                    <span className="dash-stat-icon"><PartyPopper size={18} /></span>
+                    <span className="dash-stat-label">Next holiday</span>
+                  </div>
+                  <span className="dash-stat-badge tone-amber-badge">Govt Gazetted</span>
+                </div>
+                <div className="dash-stat-body">
+                  <strong className="dash-stat-value">{nextHoliday ? (nextHoliday.daysLeft === 0 ? 'Today' : `${nextHoliday.daysLeft} days`) : '5 days'}</strong>
+                  <p className="dash-stat-desc">{nextHoliday ? nextHoliday.name : 'Mahalaya'}</p>
+                </div>
+                <div className="dash-stat-foot">
+                  <span className="dash-stat-sub">
+                    {nextHoliday?.date ? nextHoliday.date.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }) : 'Sat, 10 Oct, 2026'} · Campus closed
+                  </span>
+                </div>
+              </article>
+            </section>
+          </div>
+
+          {/* Bottom Grid: Calendar & Holiday List Side-by-Side */}
+          <div className="dash-grid-duo">
             <section className="dash-card dash-calendar" id="calendar">
               <header className="dash-card-head">
                 <h3><span className="dash-head-icon"><CalendarDays size={15} /></span>Calendar</h3>
@@ -513,10 +752,27 @@ function StudentPortal({ account, onLogout }) {
             <section className="dash-card dash-holidays" id="holidays">
               <header className="dash-card-head">
                 <h3><span className="dash-head-icon tone-amber"><PartyPopper size={15} /></span>Holiday List</h3>
-                <span className="dash-count">{holidayItems.length} days</span>
+                <div className="dash-holiday-controls">
+                  <div className="dash-holiday-filter-pills">
+                    <button
+                      type="button"
+                      className={`dash-filter-pill ${holidayView === 'all' ? 'active' : ''}`}
+                      onClick={() => setHolidayView('all')}
+                    >
+                      All 2026 ({holidayItems.length})
+                    </button>
+                    <button
+                      type="button"
+                      className={`dash-filter-pill ${holidayView === 'upcoming' ? 'active' : ''}`}
+                      onClick={() => setHolidayView('upcoming')}
+                    >
+                      Upcoming ({holidayItems.filter((h) => h.daysLeft >= 0).length})
+                    </button>
+                  </div>
+                </div>
               </header>
-              <ul className="dash-holiday-list" aria-label="Upcoming holidays">
-                {holidayItems.map((h) => (
+              <ul className="dash-holiday-list dash-holiday-scroll" aria-label="Government holidays 2026">
+                {displayedHolidays.map((h) => (
                   <li className={`dash-holiday ${h.daysLeft < 0 ? 'is-past' : ''} ${nextHoliday && nextHoliday.raw === h.raw ? 'is-next' : ''}`} key={h.raw}>
                     <span className="dash-holiday-date">
                       <strong>{h.date.getDate()}</strong>
@@ -533,31 +789,6 @@ function StudentPortal({ account, onLogout }) {
                 ))}
               </ul>
             </section>
-
-            <aside className="dash-card dash-info" id="student-information" aria-label="Student account information">
-              <div className="dash-info-cover">
-                <span className="dash-info-avatar">{initials}</span>
-                <div>
-                  <strong>{account.name}</strong>
-                  <small>{account.registrationNumber}</small>
-                </div>
-                <span className="dash-status"><i /> Active</span>
-              </div>
-              <dl className="dash-info-list">
-                <DetailRow label="Registration No." value={account.registrationNumber} />
-                <DetailRow label="Name" value={account.name} />
-                <DetailRow label="Course" value="B.Tech" />
-                <DetailRow label="Batch" value="2023–2027" />
-                <DetailRow label="Branch" value={account.department} />
-                <DetailRow label="Section" value="CSE · Section A" />
-                <DetailRow label="Email ID" value="ananya.das@student.gift.edu.in" />
-                <DetailRow label="Mobile No." value="+91 98610 23010" />
-              </dl>
-              <button className="dash-btn dash-btn-primary dash-info-btn" type="button" onClick={() => {
-                setActivePage('profile')
-                setActiveLink('Dashboard')
-              }}>View profile <ChevronRight size={15} /></button>
-            </aside>
           </div>
 
           <footer className="dash-footer">GIFT Autonomous, Bhubaneswar <span>·</span> Student management portal <span>·</span> {today.getFullYear()}</footer>

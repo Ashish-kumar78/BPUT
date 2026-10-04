@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import './FacultyPortal.css';
 import '../components/AdminPortal.css';
+import { downloadDepartmentGazettePdf } from '../utils/pdfGenerator';
 import { generateAllStudents } from '../data/collegeData.js';
 import MarksManagementModule from '../marks/MarksManagementModule.jsx';
 
@@ -386,7 +387,7 @@ export default function FacultyPortal({ account, onLogout }) {
                 <div className="admin-kpi-card">
                   <span className="admin-kpi-label">Highest Score</span>
                   <div className="admin-kpi-val" style={{ color: '#059669' }}>96.0%</div>
-                  <small style={{ color: '#64748b' }}>Ananya Das (Roll 01)</small>
+                  <small style={{ color: '#64748b' }}>Rakesh Das (Roll 01)</small>
                 </div>
                 <div className="admin-kpi-card">
                   <span className="admin-kpi-label">Lowest Score</span>
@@ -417,7 +418,7 @@ export default function FacultyPortal({ account, onLogout }) {
                   <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0.5rem 0 1rem 0' }}>
                     Official grade sheet breakdown for 91 students across all 13 components.
                   </p>
-                  <button className="admin-action-btn-primary" onClick={() => alert('Downloaded CS501 CIA Gazette PDF.')}>
+                  <button className="admin-action-btn-primary" onClick={() => downloadDepartmentGazettePdf('Data Structures (CS501) CIA Gazette')}>
                     <Download size={15} /> Download PDF Sheet
                   </button>
                 </div>
@@ -427,7 +428,7 @@ export default function FacultyPortal({ account, onLogout }) {
                   <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0.5rem 0 1rem 0' }}>
                     100% completed internal assessment register signed by course evaluator.
                   </p>
-                  <button className="admin-action-btn-primary" onClick={() => alert('Downloaded CS502 CIA Gazette PDF.')}>
+                  <button className="admin-action-btn-primary" onClick={() => downloadDepartmentGazettePdf('Operating Systems (CS502) CIA Gazette')}>
                     <Download size={15} /> Download PDF Sheet
                   </button>
                 </div>

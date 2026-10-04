@@ -54,6 +54,107 @@
   border: 1px solid #e2e8f0;
 }
 
+/* ── Enhanced Complaint Card ── */
+.complaint-card-enhanced {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.complaint-card-enhanced:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+}
+
+.complaint-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.complaint-description-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  background: #faf5ff;
+  border: 1px solid #e9d5ff;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+}
+
+.complaint-image-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.complaint-thumb {
+  width: 120px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.complaint-thumb:hover {
+  transform: scale(1.04);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* ── Complaint Modal ── */
+.complaint-modal {
+  max-width: 560px;
+  width: 100%;
+}
+
+/* ── Upload Zone ── */
+.complaint-upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 2px dashed #c4b5fd;
+  border-radius: 10px;
+  padding: 1.5rem;
+  cursor: pointer;
+  background: #faf5ff;
+  transition: background 0.15s, border-color 0.15s;
+  text-align: center;
+}
+
+.complaint-upload-zone:hover {
+  background: #f3e8ff;
+  border-color: #a78bfa;
+}
+
+/* ── Image Preview ── */
+.complaint-preview-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.complaint-preview-img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  object-fit: cover;
+  display: block;
+}
+
+/* Legacy (keep for compatibility) */
 .complaint-item {
   display: flex;
   justify-content: space-between;

@@ -18,9 +18,9 @@ import './BloggingPage.css'
 const posts = [
   {
     id: 1,
-    author: 'Ananya Das',
+    author: 'Rakesh Das',
     dept: 'CSE · Semester 5',
-    initials: 'AD',
+    initials: 'RN',
     date: '01 Oct 2026',
     tag: 'ACADEMIC',
     title: "How I'm preparing for my 5th Semester Internal Assessments",
@@ -101,9 +101,9 @@ export default function BloggingPage() {
     if (!newPost.title.trim() || !newPost.body.trim()) return
     const post = {
       id: Date.now(),
-      author: 'Ananya Das',
+      author: 'Rakesh Das',
       dept: 'CSE · Semester 5',
-      initials: 'AD',
+      initials: 'RN',
       date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
       tag: newPost.tag,
       title: newPost.title,
@@ -123,7 +123,7 @@ export default function BloggingPage() {
     if (!text) return
     setPostComments((prev) => ({
       ...prev,
-      [postId]: [...(prev[postId] || []), { author: 'Ananya Das', text, date: 'Just now' }],
+      [postId]: [...(prev[postId] || []), { author: 'Rakesh Das', text, date: 'Just now' }],
     }))
     setBlogPosts((prev) => prev.map((p) => p.id === postId ? { ...p, comments: p.comments + 1 } : p))
     setCommentTexts((prev) => ({ ...prev, [postId]: '' }))

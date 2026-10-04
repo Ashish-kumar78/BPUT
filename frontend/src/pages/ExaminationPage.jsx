@@ -11,6 +11,7 @@ import {
   TrendingUp,
   X,
 } from 'lucide-react'
+import { downloadGradeCardPdf, downloadAdmitCardPdf } from '../utils/pdfGenerator'
 import './ExaminationPage.css'
 
 const internalSchedule = [
@@ -130,7 +131,12 @@ export default function ExaminationPage() {
           <div className="exam-admit-row">
             <FileText size={14} />
             <span>Admit card for Internal Assessment 2 will be available from <strong>12 Oct 2026</strong>.</span>
-            <button className="exam-download-btn" disabled>Download Admit Card</button>
+            <button 
+              className="exam-download-btn" 
+              onClick={() => downloadAdmitCardPdf(internalSchedule, { name: 'Aarav Sharma', rollNo: '2301289140' })}
+            >
+              <FileText size={12} />Download Admit Card
+            </button>
           </div>
         </div>
       )}
@@ -205,7 +211,12 @@ export default function ExaminationPage() {
               <h3>Grade Card — All Semesters</h3>
               <p>Cumulative academic performance across all completed semesters</p>
             </div>
-            <button className="exam-download-btn"><FileText size={12} />Download Grade Card</button>
+            <button 
+              className="exam-download-btn"
+              onClick={() => downloadGradeCardPdf(universityResults[selectedSemester] || { semester: 'All Semesters', sgpa: '8.42' }, { name: 'Aarav Sharma', rollNo: '2301289140' })}
+            >
+              <FileText size={12} />Download Grade Card
+            </button>
           </div>
           <div className="grade-card-table-wrap">
             <table className="exam-table grade-table">

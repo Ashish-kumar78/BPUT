@@ -80,6 +80,310 @@ export const SUBJECTS = [
   },
 ]
 
+export const SEMESTER_SUBJECTS = {
+  sem1: [
+    {
+      id: 'sem1_m1',
+      code: 'CS101',
+      name: 'Mathematics-I',
+      shortName: 'MATH-1',
+      credits: 4,
+      faculty: 'Dr. K. R. Mohapatra',
+      room: 'Room 101',
+      color: '#2563eb',
+    },
+    {
+      id: 'sem1_bps',
+      code: 'CS102',
+      name: 'Basic Programming Skills',
+      shortName: 'BPS',
+      credits: 4,
+      faculty: 'Dr. S. S. Ray',
+      room: 'Room 102',
+      color: '#059669',
+    },
+    {
+      id: 'sem1_phy',
+      code: 'CS103',
+      name: 'Elements of Engineering Physics',
+      shortName: 'PHYS',
+      credits: 3,
+      faculty: 'Prof. A. Pradhan',
+      room: 'Room 103',
+      color: '#7c3aed',
+    },
+    {
+      id: 'sem1_bee',
+      code: 'CS104',
+      name: 'Basic Electrical Engineering',
+      shortName: 'BEE',
+      credits: 3,
+      faculty: 'Prof. B. K. Jena',
+      room: 'Room 104',
+      color: '#d97706',
+    },
+    {
+      id: 'sem1_bme',
+      code: 'CS105',
+      name: 'Basic Mechanical Engineering',
+      shortName: 'BME',
+      credits: 3,
+      faculty: 'Prof. M. K. Sahoo',
+      room: 'Room 105',
+      color: '#0284c7',
+    },
+    {
+      id: 'sem1_eng1',
+      code: 'CS106',
+      name: 'English for Engineer - I',
+      shortName: 'ENG-1',
+      credits: 3,
+      faculty: 'Dr. R. N. Rath',
+      room: 'Room 106',
+      color: '#e11d48',
+    },
+  ],
+  sem2: [
+    {
+      id: 'sem2_m2',
+      code: 'CS201',
+      name: 'Mathematics-II',
+      shortName: 'MATH-2',
+      credits: 4,
+      faculty: 'Dr. K. R. Mohapatra',
+      room: 'Room 101',
+      color: '#2563eb',
+    },
+    {
+      id: 'sem2_bee',
+      code: 'CS202',
+      name: 'Basic Electronics Engineering',
+      shortName: 'BEX',
+      credits: 4,
+      faculty: 'Prof. P. K. Tripathy',
+      room: 'Room 102',
+      color: '#059669',
+    },
+    {
+      id: 'sem2_pds',
+      code: 'CS203',
+      name: 'Programming using Data Structure',
+      shortName: 'PDS',
+      credits: 4,
+      faculty: 'Dr. S. Mohanty',
+      room: 'Room 204',
+      color: '#7c3aed',
+    },
+    {
+      id: 'sem2_chem',
+      code: 'CS204',
+      name: 'Applied Chemistry',
+      shortName: 'CHEM',
+      credits: 3,
+      faculty: 'Dr. L. N. Mishra',
+      room: 'Room 105',
+      color: '#d97706',
+    },
+    {
+      id: 'sem2_bce',
+      code: 'CS205',
+      name: 'Basic Civil Engineering',
+      shortName: 'BCE',
+      credits: 3,
+      faculty: 'Prof. S. P. Behera',
+      room: 'Room 108',
+      color: '#0284c7',
+    },
+    {
+      id: 'sem2_eng2',
+      code: 'CS206',
+      name: 'English for Engineers-II',
+      shortName: 'ENG-2',
+      credits: 2,
+      faculty: 'Dr. R. N. Rath',
+      room: 'Room 106',
+      color: '#e11d48',
+    },
+  ],
+  sem3: [
+    {
+      id: 'sem3_mcs',
+      code: 'CS301',
+      name: 'Mathematics for Computer Science',
+      shortName: 'MCS',
+      credits: 4,
+      faculty: 'Dr. K. R. Mohapatra',
+      room: 'Room 201',
+      color: '#2563eb',
+    },
+    {
+      id: 'sem3_ob',
+      code: 'CS302',
+      name: 'Organisational Behavior',
+      shortName: 'OB',
+      credits: 3,
+      faculty: 'Dr. M. R. Samal',
+      room: 'Room 202',
+      color: '#059669',
+    },
+    {
+      id: 'sem3_java',
+      code: 'CS303',
+      name: 'Object Oriented Programming using Java',
+      shortName: 'JAVA',
+      credits: 4,
+      faculty: 'Prof. R. K. Nayak',
+      room: 'Room 203',
+      color: '#7c3aed',
+    },
+    {
+      id: 'sem3_dbms',
+      code: 'CS304',
+      name: 'Database Management System',
+      shortName: 'DBMS',
+      credits: 4,
+      faculty: 'Dr. P. Mohapatra',
+      room: 'Room 302',
+      color: '#d97706',
+    },
+    {
+      id: 'sem3_dld',
+      code: 'CS305',
+      name: 'Digital Logic Design',
+      shortName: 'DLD',
+      credits: 3,
+      faculty: 'Prof. S. K. Swain',
+      room: 'Room 205',
+      color: '#0284c7',
+    },
+    {
+      id: 'sem3_env',
+      code: 'CS306',
+      name: 'Environmental Engineering',
+      shortName: 'ENV',
+      credits: 2,
+      faculty: 'Dr. S. K. Dash',
+      room: 'Room 206',
+      color: '#e11d48',
+    },
+  ],
+  sem4: [
+    {
+      id: 'sem4_eco',
+      code: 'CS401',
+      name: 'Engineering Economics',
+      shortName: 'EE',
+      credits: 3,
+      faculty: 'Dr. M. R. Samal',
+      room: 'Room 301',
+      color: '#2563eb',
+    },
+    {
+      id: 'sem4_daa',
+      code: 'CS402',
+      name: 'Design and Analysis of Algorithms',
+      shortName: 'DAA',
+      credits: 4,
+      faculty: 'Dr. S. Mohanty',
+      room: 'Room 204',
+      color: '#059669',
+    },
+    {
+      id: 'sem4_coa',
+      code: 'CS403',
+      name: 'Computer Organisation & Architecture',
+      shortName: 'COA',
+      credits: 4,
+      faculty: 'Prof. M. Mishra',
+      room: 'Room 303',
+      color: '#7c3aed',
+    },
+    {
+      id: 'sem4_py',
+      code: 'CS404',
+      name: 'Programming with Python',
+      shortName: 'PYTHON',
+      credits: 3,
+      faculty: 'Prof. S. Das',
+      room: 'Room 304',
+      color: '#d97706',
+    },
+    {
+      id: 'sem4_dsp',
+      code: 'CS405',
+      name: 'Digital Signal Processing',
+      shortName: 'DSP',
+      credits: 3,
+      faculty: 'Prof. P. K. Tripathy',
+      room: 'Room 305',
+      color: '#0284c7',
+    },
+    {
+      id: 'sem4_aet',
+      code: 'CS406',
+      name: 'Ability Enhancement Training - C',
+      shortName: 'AET',
+      credits: 3,
+      faculty: 'Prof. A. K. Panda',
+      room: 'Room 306',
+      color: '#e11d48',
+    },
+  ],
+  sem5: SUBJECTS,
+}
+
+export function getMockSemesterMarks(subjectId, studentId, semester = 'sem5') {
+  if (semester === 'sem5') {
+    return {
+      mod1: 17,
+      mod2: 16,
+      q1: 9,
+      q2: 8,
+      q3: 8,
+      q4: 9,
+      q5: 8,
+      q6: 9,
+      a1: 9,
+      a2: 8,
+      st1: 9,
+      st2: 7,
+      lab: 54,
+    }
+  }
+
+  const hash = (subjectId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) + (semester === 'sem1' ? 11 : semester === 'sem2' ? 22 : semester === 'sem3' ? 33 : 44)) % 10
+
+  const mod1 = 17 + (hash % 3)
+  const mod2 = 18 + ((hash + 1) % 3)
+  const q1 = 9 + (hash % 2)
+  const q2 = 8 + (hash % 3)
+  const q3 = 9 + ((hash + 1) % 2)
+  const q4 = 9 + (hash % 2)
+  const q5 = 8 + ((hash + 2) % 3)
+  const q6 = 9 + (hash % 2)
+  const a1 = 9 + (hash % 2)
+  const a2 = 10
+  const st1 = 9 + (hash % 2)
+  const st2 = 8 + ((hash + 1) % 3)
+  const lab = 53 + (hash % 7)
+
+  return {
+    mod1,
+    mod2,
+    q1,
+    q2,
+    q3,
+    q4,
+    q5,
+    q6,
+    a1,
+    a2,
+    st1,
+    st2,
+    lab,
+  }
+}
+
 export const ASSESSMENT_TYPES = [
   { key: 'all', label: 'All Assessments' },
   { key: 'modular', label: 'Modular' },
@@ -102,12 +406,12 @@ export const ASSESSMENT_CONFIG = [
   { key: 'a2', label: 'A2', fullName: 'Assignment 2', type: 'assignments', maxMarks: 10, weightage: 5 },
   { key: 'st1', label: 'ST1', fullName: 'Surprise Test 1', type: 'surprise', maxMarks: 10, weightage: 5 },
   { key: 'st2', label: 'ST2', fullName: 'Surprise Test 2', type: 'surprise', maxMarks: 10, weightage: 5 },
-  { key: 'lab', label: 'Lab', fullName: 'Lab Practical', type: 'lab', maxMarks: 25, weightage: 15 },
+  { key: 'lab', label: 'Lab', fullName: 'Lab Practical', type: 'lab', maxMarks: 60, weightage: 15 },
 ]
 
 // 91 Realistically generated students
 const firstNames = [
-  'Rahul', 'Amit', 'Raj', 'Ananya', 'Priya', 'Sneha', 'Deepak', 'Rakesh', 'Pooja', 'Siddharth',
+  'Rahul', 'Amit', 'Raj', 'Rakesh', 'Priya', 'Sneha', 'Deepak', 'Rohit', 'Pooja', 'Siddharth',
   'Rohit', 'Vikram', 'Neha', 'Sunita', 'Abhishek', 'Swati', 'Manish', 'Kavita', 'Sanjay', 'Aditya',
   'Megha', 'Alok', 'Smita', 'Varun', 'Tarun', 'Ankit', 'Kiran', 'Suresh', 'Bhavna', 'Gaurav',
   'Arun', 'Shalini', 'Kunal', 'Jyoti', 'Nikhil', 'Tanvi', 'Mohit', 'Payal', 'Harish', 'Preeti',
@@ -131,7 +435,7 @@ export function generateStudents() {
     const regNo = `23052010${rollNo}`
     const fn = firstNames[(i - 1) % firstNames.length]
     const ln = lastNames[(i * 3) % lastNames.length]
-    const name = i === 1 ? 'Rahul Sharma' : i === 2 ? 'Amit Patel' : i === 3 ? 'Raj Kumar' : i === 4 ? 'Ananya Das' : `${fn} ${ln}`
+    const name = i === 1 ? 'Rahul Sharma' : i === 2 ? 'Amit Patel' : i === 3 ? 'Raj Kumar' : i === 4 ? 'Rakesh Das' : `${fn} ${ln}`
     students.push({
       id: `s-${i}`,
       rollNo,
